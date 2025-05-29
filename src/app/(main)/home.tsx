@@ -1,11 +1,12 @@
-import BottomTabBar from '@/src/components/BottomTabBar';
-import CategoryCard from '@/src/components/CategoryCard';
-import Header from '@/src/components/Header';
-import SearchBar from '@/src/components/SearchBar';
-import SectionTitle from '@/src/components/SectionTitle';
 import React, { useState } from 'react';
 import { Dimensions, FlatList, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import BottomTabBar from '../../components/BottomTabBar';
+import CategoryCard from '../../components/CategoryCard';
+import Header from '../../components/Header';
+import SearchBar from '../../components/SearchBar';
+import SectionTitle from '../../components/SectionTitle';
 
 const { width } = Dimensions.get('window');
 const CARD_MARGIN = 10;
@@ -14,27 +15,27 @@ const CARD_HEIGHT = 160;
 
 const categories = [
   {
-    image: require('@/src/assets/images/fruits.png'),
+    image: require('../../assets/images/fruits.png'),
     label: 'Fruits and Vegetables',
   },
   {
-    image: require('@/src/assets/images/dairy.png'),
+    image: require('../../assets/images/dairy.png'),
     label: 'Dairy and Cereals',
   },
   {
-    image: require('@/src/assets/images/beverages.png'),
+    image: require('../../assets/images/beverages.png'),
     label: 'Beverages',
   },
   {
-    image: require('@/src/assets/images/snacks.png'),
+    image: require('../../assets/images/snacks.png'),
     label: 'Snacks',
   },
   {
-    image: require('@/src/assets/images/meat.png'),
+    image: require('../../assets/images/meat.png'),
     label: 'Meat',
   },
   {
-    image: require('@/src/assets/images/cleaning.png'),
+    image: require('../../assets/images/cleaning.png'),
     label: 'Cleaning Supplies',
   },
 ];
@@ -42,6 +43,30 @@ const categories = [
 const HomeScreen = () => {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('home');
+  const router = useRouter();
+
+  const handleTabPress = (tab: string) => {
+    setActiveTab(tab);
+    
+    // Navegar a la pantalla correspondiente
+    switch(tab) {
+      case 'home':
+        // Ya estamos en home, no hacemos nada
+        break;
+      case 'favorites':
+        router.push('/(main)/favorites');
+        break;
+      case 'scan':
+        router.push('/(main)/scan');
+        break;
+      case 'cart':
+        router.push('/(main)/cart');
+        break;
+      case 'more':
+        router.push('/(main)/more');
+        break;
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -70,7 +95,7 @@ const HomeScreen = () => {
       />
 
       {/* BottomTabBar ya maneja su propio SafeArea */}
-      <BottomTabBar activeTab={activeTab} onTabPress={setActiveTab} />
+      <BottomTabBar activeTab={activeTab} onTabPress={handleTabPress} />
     </View>
   );
 };
@@ -120,4 +145,3 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
-

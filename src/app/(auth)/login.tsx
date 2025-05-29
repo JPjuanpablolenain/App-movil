@@ -49,7 +49,7 @@ const LoginScreen = () => {
           <View style={styles.section}>
             <Text style={styles.title}>
               {selectedTab === 'login'
-                ? "It’s always nice to see you again!"
+                ? "It's always nice to see you again!"
                 : 'Welcome to SmartMarket!'}
             </Text>
           </View>
@@ -68,7 +68,7 @@ const LoginScreen = () => {
            <AppButton
                 label="Log In"
                 onPress={() => {
-                router.replace('/(main)/home');
+                router.replace('/(main)');
             }}
         />
 
