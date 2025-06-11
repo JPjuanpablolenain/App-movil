@@ -1,55 +1,47 @@
 import React from 'react';
-import { View, TouchableOpacity, Image, Text, StyleSheet } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity } from 'react-native';
 
-type Props = {
+interface CategoryCardProps {
+  title: string;
   image: any;
-  label: string;
-  onPress?: () => void;
-};
+  onPress: () => void;
+}
 
-const CategoryCard = ({ image, label, onPress }: Props) => {
+const CategoryCard = ({ title, image, onPress }: CategoryCardProps) => {
   return (
-    <View style={styles.wrapper}>
-      {/* Solo este recuadro tiene elevación */}
-      <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={onPress}>
-        <Image source={image} style={styles.image} resizeMode="contain" />
-      </TouchableOpacity>
-
-      {/* Texto fuera y sin elevación */}
-      <Text style={styles.label}>{label}</Text>
-    </View>
+    <TouchableOpacity style={styles.card} onPress={onPress}>
+      <Image source={image} style={styles.image} resizeMode="contain" />
+      <Text style={styles.title}>{title}</Text>
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  wrapper: {
-    width: 140,
-    alignItems: 'center',
-    marginVertical: 12,
-
-  },
   card: {
-    width: '100%',
-    height: 120,
-    borderRadius: 15,
-    backgroundColor: 'white',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    justifyContent: 'center',
+    borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    backgroundColor: 'transparent', // ✅ Fondo eliminado
   },
   image: {
-    width: '100%',
-    height: '80%',
+    width: 80,
+    height: 80,
+    marginBottom: 8,
   },
-  label: {
-    marginTop: 8,       // separa el texto por debajo del recuadro
-    fontWeight: '500',
-    color: '#222',
-    textAlign: 'center',  
+  title: {
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+    color: '#222',    // ✅ Color oscuro visible
+    marginTop: 4,     // ✅ Separación de la imagen
   },
 });
 
 export default CategoryCard;
+
