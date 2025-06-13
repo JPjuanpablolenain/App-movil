@@ -1,5 +1,6 @@
 // src/app/(main)/categoria/Meat.tsx
 
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
@@ -24,14 +25,15 @@ const TAB_BAR_HEIGHT = 60;
 
 // Lista de productos específicos para Meat
 const meatProducts = [
-  { id: '1', name: 'Chicken Breast', image: require('../../../assets/images/meat.png') },
-  { id: '2', name: 'Beef Steak',     image: require('../../../assets/images/meat.png') },
-  { id: '3', name: 'Pork Chops',     image: require('../../../assets/images/meat.png') },
-  { id: '4', name: 'Lamb',           image: require('../../../assets/images/meat.png') },
+  { id: '1', name: 'Chicken Breast', price: '$5.99', image: require('../../../assets/images/meat.png') },
+  { id: '2', name: 'Beef Steak',     price: '$8.50', image: require('../../../assets/images/meat.png') },
+  { id: '3', name: 'Pork Chops',     price: '$6.75', image: require('../../../assets/images/meat.png') },
+  { id: '4', name: 'Lamb',           price: '$9.99', image: require('../../../assets/images/meat.png') },
 ];
 
 export default function MeatScreen() {
   const [activeTab, setActiveTab] = useState('home');
+  const [favorites, setFavorites] = useState<{[key: string]: boolean}>({});
   const router                    = useRouter();
   const insets                    = useSafeAreaInsets();
 
@@ -56,14 +58,37 @@ export default function MeatScreen() {
     }
   };
 
+  const toggleFavorite = (id: string) => {
+    setFavorites(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
   const renderMeat = ({
     item,
   }: {
-    item: { id: string; name: string; image: any };
+    item: { id: string; name: string; price: string; image: any };
   }) => (
     <TouchableOpacity style={styles.card}>
+      <TouchableOpacity 
+        style={styles.favoriteButton} 
+        onPress={() => toggleFavorite(item.id)}
+      >
+        <Ionicons 
+          name="heart" 
+          size={22} 
+          color={favorites[item.id] ? 'green' : '#ddd'} 
+        />
+      </TouchableOpacity>
       <Image source={item.image} style={styles.image} resizeMode="contain" />
       <Text style={styles.title}>{item.name}</Text>
+      <View style={styles.priceContainer}>
+        <Text style={styles.price}>{item.price}</Text>
+        <TouchableOpacity style={styles.addButton} onPress={() => console.log(`Added ${item.name} to cart`)}>
+          <Text style={styles.addButtonText}>+</Text>
+        </TouchableOpacity>
+      </View>
     </TouchableOpacity>
   );
 
@@ -142,15 +167,50 @@ const styles = StyleSheet.create({
     elevation:        5,
     justifyContent:   'center',
     alignItems:       'center',
+    padding:          10,
+    position:         'relative',
+  },
+  favoriteButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    zIndex: 10,
   },
   image: {
     width:        80,
     height:       80,
-    marginBottom: 8,
+    marginBottom: 4,
   },
   title: {
     fontSize:   14,
     fontWeight: '600',
     textAlign:  'center',
+    marginBottom: 4,
+  },
+  priceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 4,
+  },
+  price: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: 'green',
+  },
+  addButton: {
+    backgroundColor: 'green',
+    borderRadius: 15,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+    lineHeight: 22,
   },
 });

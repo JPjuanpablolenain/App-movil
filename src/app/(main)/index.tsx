@@ -1,13 +1,21 @@
-import React from 'react';
-import { SafeAreaView } from 'react-native';
-import HomeScreen from './home';
+import { Roboto_400Regular_Italic, useFonts } from "@expo-google-fonts/roboto";
+import * as SplashScreen from "expo-splash-screen";
+import { useEffect } from 'react';
+//import MainNavigator from '../../components/MainNavigator';
+
+SplashScreen.preventAutoHideAsync();
 
 const Main = () => {
-  return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <HomeScreen />
-    </SafeAreaView>
-  );
+    const [fontsLoaded] = useFonts({
+        Roboto_400Regular_Italic,
+    })
+
+    useEffect(() => {
+        if (fontsLoaded){
+            SplashScreen.hideAsync();
+        }
+    }, [fontsLoaded]);
+     
 };
 
 export default Main;

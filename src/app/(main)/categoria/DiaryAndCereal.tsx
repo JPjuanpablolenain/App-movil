@@ -1,5 +1,6 @@
 // src/app/(main)/categoria/DiaryAndCereal.tsx
 
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
@@ -24,16 +25,17 @@ const TAB_BAR_HEIGHT = 60;
 
 // Productos para “Dairy and Cereals”
 const diaryAndCerealProducts = [
-  { id: '1', name: 'Milk',       image: require('../../../assets/images/dairy.png') },
-  { id: '2', name: 'Cheese',     image: require('../../../assets/images/dairy.png') },
-  { id: '3', name: 'Yogurt',     image: require('../../../assets/images/dairy.png') },
-  { id: '4', name: 'Oats',       image: require('../../../assets/images/dairy.png') },
-  { id: '5', name: 'Cereal',     image: require('../../../assets/images/dairy.png') },
-  { id: '6', name: 'Butter',     image: require('../../../assets/images/dairy.png') },
+  { id: '1', name: 'Milk',       price: '$1.99', image: require('../../../assets/images/dairy.png') },
+  { id: '2', name: 'Cheese',     price: '$3.50', image: require('../../../assets/images/dairy.png') },
+  { id: '3', name: 'Yogurt',     price: '$1.25', image: require('../../../assets/images/dairy.png') },
+  { id: '4', name: 'Oats',       price: '$2.75', image: require('../../../assets/images/dairy.png') },
+  { id: '5', name: 'Cereal',     price: '$4.20', image: require('../../../assets/images/dairy.png') },
+  { id: '6', name: 'Butter',     price: '$2.30', image: require('../../../assets/images/dairy.png') },
 ];
 
 export default function DiaryAndCereal() {
   const [activeTab, setActiveTab] = useState('home');
+  const [favorites, setFavorites] = useState<{[key: string]: boolean}>({});
   const router                    = useRouter();
   const insets                    = useSafeAreaInsets();
 
@@ -58,10 +60,33 @@ export default function DiaryAndCereal() {
     }
   };
 
-  const renderItem = ({ item }: { item: { id: string; name: string; image: any } }) => (
+  const toggleFavorite = (id: string) => {
+    setFavorites(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
+  const renderItem = ({ item }: { item: { id: string; name: string; price: string; image: any } }) => (
     <TouchableOpacity style={styles.card}>
+      <TouchableOpacity 
+        style={styles.favoriteButton} 
+        onPress={() => toggleFavorite(item.id)}
+      >
+        <Ionicons 
+          name="heart" 
+          size={22} 
+          color={favorites[item.id] ? 'green' : '#ddd'} 
+        />
+      </TouchableOpacity>
       <Image source={item.image} style={styles.image} resizeMode="contain" />
       <Text style={styles.title}>{item.name}</Text>
+      <View style={styles.priceContainer}>
+        <Text style={styles.price}>{item.price}</Text>
+        <TouchableOpacity style={styles.addButton} onPress={() => console.log(`Added ${item.name} to cart`)}>
+          <Text style={styles.addButtonText}>+</Text>
+        </TouchableOpacity>
+      </View>
     </TouchableOpacity>
   );
 
@@ -140,15 +165,50 @@ const styles = StyleSheet.create({
     elevation:        5,
     justifyContent:   'center',
     alignItems:       'center',
+    padding:          10,
+    position:         'relative',
+  },
+  favoriteButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    zIndex: 10,
   },
   image: {
     width:        80,
     height:       80,
-    marginBottom: 8,
+    marginBottom: 4,
   },
   title: {
     fontSize:   14,
     fontWeight: '600',
     textAlign:  'center',
+    marginBottom: 4,
+  },
+  priceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 4,
+  },
+  price: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: 'green',
+  },
+  addButton: {
+    backgroundColor: 'green',
+    borderRadius: 15,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+    lineHeight: 22,
   },
 });

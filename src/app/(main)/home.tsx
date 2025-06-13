@@ -1,42 +1,41 @@
-import { useRouter } from 'expo-router';
+import BottomTabBar from '@/src/components/BottomTabBar';
+import CategoryCard from '@/src/components/CategoryCard';
+import Header from '@/src/components/Header';
+import SearchBar from '@/src/components/SearchBar';
+import SectionTitle from '@/src/components/SectionTitle';
 import React, { useState } from 'react';
 import { Dimensions, FlatList, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BottomTabBar from '../../components/BottomTabBar';
-import CategoryCard from '../../components/CategoryCard';
-import Header from '../../components/Header';
-import SearchBar from '../../components/SearchBar';
-import SectionTitle from '../../components/SectionTitle';
+import { useRouter } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 const CARD_MARGIN = 10;
 const CARD_WIDTH = (width - 60) / 2;
 const CARD_HEIGHT = 160;
-const TAB_BAR_HEIGHT = 60; // ✅ altura dinámica del tab bar
 
 const categories = [
   {
-    image: require('../../assets/images/fruits.png'),
+    image: require('@/src/assets/images/fruits.png'),
     label: 'Fruits and Vegetables',
   },
   {
-    image: require('../../assets/images/dairy.png'),
+    image: require('@/src/assets/images/dairy.png'),
     label: 'Dairy and Cereals',
   },
   {
-    image: require('../../assets/images/beverages.png'),
+    image: require('@/src/assets/images/beverages.png'),
     label: 'Beverages',
   },
   {
-    image: require('../../assets/images/snacks.png'),
+    image: require('@/src/assets/images/snacks.png'),
     label: 'Snacks',
   },
   {
-    image: require('../../assets/images/meat.png'),
+    image: require('@/src/assets/images/meat.png'),
     label: 'Meat',
   },
   {
-    image: require('../../assets/images/cleaning.png'),
+    image: require('@/src/assets/images/cleaning.png'),
     label: 'Cleaning Supplies',
   },
 ];
@@ -46,26 +45,29 @@ const HomeScreen = () => {
   const [activeTab, setActiveTab] = useState('home');
   const router = useRouter();
 
-  const handleTabPress = (tab: string) => {
-    setActiveTab(tab);
+const handleTabPress = (tab: string) => {
+  setActiveTab(tab);
+  
+  // Navegar a la pantalla correspondiente
+  switch(tab) {
+    case 'home':
+      // Ya estamos en home, no hacemos nada
+      break;
+    case 'favorites':
+      router.push('/(main)/favorites');
+      break;
+    case 'scan':
+      router.push('/(main)/scan');
+      break;
+    case 'cart':
+      router.push('/(main)/cart');
+      break;
+    case 'more':
+      router.push('/(main)/more');
+      break;
+  }
+};
 
-    switch (tab) {
-      case 'home':
-        break;
-      case 'favorites':
-        router.push('/(main)/favorites');
-        break;
-      case 'scan':
-        router.push('/(main)/scan');
-        break;
-      case 'cart':
-        router.push('/(main)/cart');
-        break;
-      case 'more':
-        router.push('/(main)/more');
-        break;
-    }
-  };
 
   return (
     <View style={styles.container}>
@@ -86,30 +88,14 @@ const HomeScreen = () => {
         contentContainerStyle={styles.categories}
         columnWrapperStyle={styles.rowWrapper}
         renderItem={({ item }) => (
-           <View style={styles.cardWrapper}>
-            <CategoryCard
-              image={item.image}
-              title={item.label}
-              onPress={() => {
-                if (item.label === 'Snacks') {
-                  router.push('/categoria/Snacks');
-                } else if (item.label === 'Beverages') {
-                  router.push('/categoria/Beverages');
-                } else if (item.label === 'Fruits and Vegetables') {
-                  router.push('/categoria/FruitsAndVeg');
-                } else if (item.label === 'Meat') {
-                  router.push('/categoria/Meat');
-                } else if (item.label === 'Dairy and Cereals') {
-                  router.push('/categoria/DiaryAndCereal');
-                } else if (item.label === 'Cleaning Supplies') {
-                  router.push('/categoria/Cleaning');
-                } 
-              }}
-            />
+          <View style={styles.cardWrapper}>
+            <CategoryCard image={item.image} label={item.label} />
           </View>
         )}
         showsVerticalScrollIndicator={false}
       />
+
+      {/* BottomTabBar ya maneja su propio SafeArea */}
       <BottomTabBar activeTab={activeTab} onTabPress={handleTabPress} />
     </View>
   );
@@ -125,9 +111,8 @@ const styles = StyleSheet.create({
   headerWrapper: {
     backgroundColor: 'white',
     shadowColor: '#000',
-    borderRadius: 20,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 6,
     zIndex: 10,
@@ -140,7 +125,7 @@ const styles = StyleSheet.create({
   categories: {
     paddingVertical: 10,
     paddingHorizontal: 10,
-    paddingBottom: TAB_BAR_HEIGHT, // ✅ ajuste dinámico
+    paddingBottom: 120, // espacio suficiente para el BottomTabBar
   },
   rowWrapper: {
     justifyContent: 'space-between',

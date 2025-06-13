@@ -1,47 +1,56 @@
 import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity, Image, Text, StyleSheet } from 'react-native';
 
-interface CategoryCardProps {
-  title: string;
+type Props = {
   image: any;
-  onPress: () => void;
-}
+  label: string;
+  onPress?: () => void;
+};
 
-const CategoryCard = ({ title, image, onPress }: CategoryCardProps) => {
+const CategoryCard = ({ image, label, onPress }: Props) => {
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress}>
-      <Image source={image} style={styles.image} resizeMode="contain" />
-      <Text style={styles.title}>{title}</Text>
-    </TouchableOpacity>
+    <View style={styles.wrapper}>
+      {/* Solo este recuadro tiene elevación */}
+      <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={onPress}>
+        <Image source={image} style={styles.image} resizeMode="contain" />
+      </TouchableOpacity>
+
+      {/* Texto fuera y sin elevación */}
+      <Text style={styles.label}>{label}</Text>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: 12,
+  wrapper: {
+    width: 140,
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    elevation: 3,
+    marginVertical: 12,
+
+  },
+  card: {
+    width: '100%',
+    height: 120,
+    borderRadius: 15,
+    backgroundColor: 'white',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
-    backgroundColor: 'transparent', // ✅ Fondo eliminado
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   image: {
-    width: 80,
-    height: 80,
-    marginBottom: 8,
+    width: '100%',
+    height: '80%',
   },
-  title: {
-    fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'center',
-    color: '#222',    // ✅ Color oscuro visible
-    marginTop: 4,     // ✅ Separación de la imagen
+  label: {
+    marginTop: 8,       // separa el texto por debajo del recuadro
+    fontWeight: '500',
+    color: '#222',
+    textAlign: 'center',  
+    
   },
 });
 
 export default CategoryCard;
-
