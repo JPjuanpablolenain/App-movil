@@ -45,28 +45,54 @@ const HomeScreen = () => {
   const [activeTab, setActiveTab] = useState('home');
   const router = useRouter();
 
-const handleTabPress = (tab: string) => {
-  setActiveTab(tab);
-  
-  // Navegar a la pantalla correspondiente
-  switch(tab) {
-    case 'home':
-      // Ya estamos en home, no hacemos nada
-      break;
-    case 'favorites':
-      router.push('/(main)/favorites');
-      break;
-    case 'scan':
-      router.push('/(main)/scan');
-      break;
-    case 'cart':
-      router.push('/(main)/cart');
-      break;
-    case 'more':
-      router.push('/(main)/more');
-      break;
-  }
-};
+  // Función para navegar a la pantalla de categoría correspondiente
+  const handleCategoryPress = (category: string) => {
+    switch(category) {
+      case 'Fruits and Vegetables':
+        router.push('/(main)/categoria/FruitsAndVeg');
+        break;
+      case 'Dairy and Cereals':
+        router.push('/(main)/categoria/DiaryAndCereal');
+        break;
+      case 'Beverages':
+        router.push('/(main)/categoria/Beverages');
+        break;
+      case 'Snacks':
+        router.push('/(main)/categoria/Snacks');
+        break;
+      case 'Meat':
+        router.push('/(main)/categoria/Meat');
+        break;
+      case 'Cleaning Supplies':
+        router.push('/(main)/categoria/Cleaning');
+        break;
+      default:
+        break;
+    }
+  };
+
+  const handleTabPress = (tab: string) => {
+    setActiveTab(tab);
+    
+    // Navegar a la pantalla correspondiente
+    switch(tab) {
+      case 'home':
+        // Ya estamos en home, no hacemos nada
+        break;
+      case 'favorites':
+        router.push('/(main)/favorites');
+        break;
+      case 'scan':
+        router.push('/(main)/scan');
+        break;
+      case 'cart':
+        router.push('/(main)/cart');
+        break;
+      case 'more':
+        router.push('/(main)/more');
+        break;
+    }
+  };
 
 
   return (
@@ -89,7 +115,11 @@ const handleTabPress = (tab: string) => {
         columnWrapperStyle={styles.rowWrapper}
         renderItem={({ item }) => (
           <View style={styles.cardWrapper}>
-            <CategoryCard image={item.image} label={item.label} />
+            <CategoryCard 
+              image={item.image} 
+              label={item.label} 
+              onPress={() => handleCategoryPress(item.label)}
+            />
           </View>
         )}
         showsVerticalScrollIndicator={false}

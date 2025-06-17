@@ -16,6 +16,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import BottomTabBar from '../../../components/BottomTabBar';
 import Header from '../../../components/Header';
+import { Product, useCart, useFavorites } from '../../_layout';
 
 const { width } = Dimensions.get('window');
 const CARD_MARGIN    = 10;
@@ -35,9 +36,10 @@ const fruitsAndVegProducts = [
 
 export default function FruitsAndVeg() {
   const [activeTab, setActiveTab] = useState('home');
-  const [favorites, setFavorites] = useState<{[key: string]: boolean}>({});
-  const router                    = useRouter();
-  const insets                    = useSafeAreaInsets();
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { addFavorite, removeFavorite, isFavorite } = useFavorites();
+  const { addToCart, isInCart } = useCart();
 
   const handleTabPress = (tab: string) => {
     setActiveTab(tab);
@@ -60,34 +62,50 @@ export default function FruitsAndVeg() {
     }
   };
 
-  const toggleFavorite = (id: string) => {
-    setFavorites(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
+  const handleFavoritePress = (product: Product) => {
+    if (isFavorite(product.id)) {
+      removeFavorite(product.id);
+    } else {
+      addFavorite(product);
+    }
   };
 
-  const renderItem = ({ item }: { item: { id: string; name: string; price: string; image: any } }) => (
-    <TouchableOpacity style={styles.card}>
+  const handleAddToCart = (product: Product) => {
+    addToCart(product);
+  };
+
+  const renderItem = ({ item }: { item: Product }) => (
+    <View style={styles.card}>
+      {/* Botón de favoritos (corazón) en la esquina superior derecha */}
       <TouchableOpacity 
-        style={styles.favoriteButton} 
-        onPress={() => toggleFavorite(item.id)}
+        style={styles.favoriteButton}
+        activeOpacity={0.7}
+        onPress={() => handleFavoritePress(item)}
       >
         <Ionicons 
-          name="heart" 
+          name={isFavorite(item.id) ? "heart" : "heart-outline"} 
           size={22} 
-          color={favorites[item.id] ? 'green' : '#ddd'} 
+          color={isFavorite(item.id) ? 'red' : '#666'} 
         />
       </TouchableOpacity>
+      
       <Image source={item.image} style={styles.image} resizeMode="contain" />
       <Text style={styles.title}>{item.name}</Text>
+      
       <View style={styles.priceContainer}>
         <Text style={styles.price}>{item.price}</Text>
-        <TouchableOpacity style={styles.addButton} onPress={() => console.log(`Added ${item.name} to cart`)}>
+        {/* Botón de añadir al carrito (+) */}
+        <TouchableOpacity 
+          style={[
+            styles.addButton,
+            isInCart(item.id) ? styles.addButtonActive : {}
+          ]} 
+          onPress={() => handleAddToCart(item)}
+        >
           <Text style={styles.addButtonText}>+</Text>
         </TouchableOpacity>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 
   return (
@@ -173,6 +191,10 @@ const styles = StyleSheet.create({
     top: 8,
     right: 8,
     zIndex: 10,
+    width: 30,
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   image: {
     width:        80,
@@ -204,6 +226,9 @@ const styles = StyleSheet.create({
     height: 24,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  addButtonActive: {
+    backgroundColor: '#005500', // Verde más oscuro para indicar que está en el carrito
   },
   addButtonText: {
     color: 'white',

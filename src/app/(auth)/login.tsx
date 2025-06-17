@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import {
     KeyboardAvoidingView,
     Platform,
@@ -13,10 +13,15 @@ import AppButton from '@/src/components/AppButton';
 import AuthCard from '@/src/components/AuthCard';
 import FormInput from '@/src/components/FormInput';
 import TabButton from '@/src/components/tabButton';
-import { router } from 'expo-router';
+import { AuthContext } from '../_layout';
 
 const LoginScreen = () => {
   const [selectedTab, setSelectedTab] = useState<'login' | 'signup'>('login');
+  const { login } = useContext(AuthContext);
+
+  const handleLogin = () => {
+    login(); // Esto redirigirá automáticamente a la pantalla principal
+  };
 
   return (
     <KeyboardAvoidingView
@@ -67,11 +72,8 @@ const LoginScreen = () => {
           <View style={styles.section}>
            <AppButton
                 label="Log In"
-                onPress={() => {
-                router.replace('/(main)');
-            }}
-        />
-
+                onPress={handleLogin}
+            />
           </View>
 
           {/* Enlace secundario */}

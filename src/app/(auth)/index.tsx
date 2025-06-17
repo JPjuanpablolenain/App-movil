@@ -1,4 +1,5 @@
 import imagePath from '@/src/constants/imagePath';
+import { useContext } from 'react';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -10,15 +11,17 @@ import {
     View,
 } from 'react-native';
 import { moderateScale, verticalScale } from 'react-native-size-matters';
+import { AuthContext } from '../_layout';
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const { login } = useContext(AuthContext);
 
   const logoScale = useRef(new Animated.Value(0.5)).current;
   const textFade = useRef(new Animated.Value(0)).current;
   const footerFade = useRef(new Animated.Value(0)).current;
   const footerHeight = useRef(new Animated.Value(0)).current;
-  const containerFade = useRef(new Animated.Value(1)).current; // <-- NUEVO
+  const containerFade = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     // Animación inicial: logo y texto

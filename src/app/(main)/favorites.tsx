@@ -5,6 +5,8 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import BottomTabBar from '../../components/BottomTabBar';
 import Header from '../../components/Header';
+import { useCart, useFavorites } from '../_layout';
+import { Ionicons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 const CARD_MARGIN = 10;
@@ -16,8 +18,8 @@ const FavoritesScreen = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const TAB_BAR_HEIGHT = 60;
-  // Usar un estado local para favoritos en lugar del contexto
-  const [favorites, setFavorites] = useState([]);
+  const { favorites, removeFavorite } = useFavorites();
+  const { addToCart, isInCart } = useCart();
 
   const handleTabPress = (tab: string) => {
     setActiveTab(tab);
@@ -40,20 +42,48 @@ const FavoritesScreen = () => {
     }
   };
 
+  const handleRemoveFavorite = (id) => {
+    removeFavorite(id);
+  };
+
+  const handleAddToCart = (item) => {
+    addToCart(item);
+  };
+
   const renderFavoriteItem = ({ item }) => (
-    <TouchableOpacity style={styles.card}>
-      <Image source={item.image} style={styles.image} resizeMode="contain" />
-      <Text style={styles.title}>{item.name}</Text>
-      <View style={styles.priceContainer}>
-        <Text style={styles.price}>{item.price}</Text>
+    <View style={styles.card}>
+      {/* Botón de favoritos (corazón) en la esquina superior derecha */}
+      <View style={styles.favoriteButtonContainer}>
         <TouchableOpacity 
-          style={styles.removeButton} 
-          onPress={() => {}}
+          style={styles.favoriteButton}
+          activeOpacity={0.7}
+          onPress={() => handleRemoveFavorite(item.id)}
         >
-          <Text style={styles.removeButtonText}>♥</Text>
+          <Ionicons 
+            name="heart" 
+            size={22} 
+            color="red" 
+          />
         </TouchableOpacity>
       </View>
-    </TouchableOpacity>
+      
+      <Image source={item.image} style={styles.image} resizeMode="contain" />
+      <Text style={styles.title}>{item.name}</Text>
+      
+      <View style={styles.priceContainer}>
+        <Text style={styles.price}>{item.price}</Text>
+        {/* Botón de añadir al carrito (+) */}
+        <TouchableOpacity 
+          style={[
+            styles.addButton,
+            isInCart(item.id) ? styles.addButtonActive : {}
+          ]} 
+          onPress={() => handleAddToCart(item)}
+        >
+          <Text style={styles.addButtonText}>+</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 
   return (
@@ -149,6 +179,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 10,
+    position: 'relative',
+  },
+  favoriteButtonContainer: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    zIndex: 10,
+    width: 30,
+    height: 30,
+  },
+  favoriteButton: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   image: {
     width: 80,
@@ -173,15 +218,18 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: 'green',
   },
-  removeButton: {
-    backgroundColor: 'red',
+  addButton: {
+    backgroundColor: 'green',
     borderRadius: 15,
     width: 24,
     height: 24,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  removeButtonText: {
+  addButtonActive: {
+    backgroundColor: '#005500', // Verde más oscuro para indicar que está en el carrito
+  },
+  addButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',

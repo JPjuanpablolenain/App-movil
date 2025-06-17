@@ -16,28 +16,30 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import BottomTabBar from '../../../components/BottomTabBar';
 import Header from '../../../components/Header';
+import { Product, useCart, useFavorites } from '../../_layout';
 
-const { width }     = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 const CARD_MARGIN    = 10;
 const CARD_WIDTH     = (width - 60) / 2;
 const CARD_HEIGHT    = 160;
 const TAB_BAR_HEIGHT = 60;
 
-// Productos para “Dairy and Cereals”
-const diaryAndCerealProducts = [
-  { id: '1', name: 'Milk',       price: '$1.99', image: require('../../../assets/images/dairy.png') },
-  { id: '2', name: 'Cheese',     price: '$3.50', image: require('../../../assets/images/dairy.png') },
-  { id: '3', name: 'Yogurt',     price: '$1.25', image: require('../../../assets/images/dairy.png') },
-  { id: '4', name: 'Oats',       price: '$2.75', image: require('../../../assets/images/dairy.png') },
-  { id: '5', name: 'Cereal',     price: '$4.20', image: require('../../../assets/images/dairy.png') },
-  { id: '6', name: 'Butter',     price: '$2.30', image: require('../../../assets/images/dairy.png') },
+// Lista de productos específicos para Dairy and Cereal
+const dairyAndCerealProducts = [
+  { id: 'd1', name: 'Milk',        price: '$2.99', image: require('../../../assets/images/dairy.png') },
+  { id: 'd2', name: 'Cheese',      price: '$4.50', image: require('../../../assets/images/dairy.png') },
+  { id: 'd3', name: 'Yogurt',      price: '$1.25', image: require('../../../assets/images/dairy.png') },
+  { id: 'd4', name: 'Cereal',      price: '$3.50', image: require('../../../assets/images/dairy.png') },
+  { id: 'd5', name: 'Butter',      price: '$2.99', image: require('../../../assets/images/dairy.png') },
+  { id: 'd6', name: 'Oatmeal',     price: '$3.75', image: require('../../../assets/images/dairy.png') },
 ];
 
 export default function DiaryAndCereal() {
   const [activeTab, setActiveTab] = useState('home');
-  const [favorites, setFavorites] = useState<{[key: string]: boolean}>({});
-  const router                    = useRouter();
-  const insets                    = useSafeAreaInsets();
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { addFavorite, removeFavorite, isFavorite } = useFavorites();
+  const { addToCart, isInCart } = useCart();
 
   const handleTabPress = (tab: string) => {
     setActiveTab(tab);
@@ -60,51 +62,67 @@ export default function DiaryAndCereal() {
     }
   };
 
-  const toggleFavorite = (id: string) => {
-    setFavorites(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
+  const handleFavoritePress = (product: Product) => {
+    if (isFavorite(product.id)) {
+      removeFavorite(product.id);
+    } else {
+      addFavorite(product);
+    }
   };
 
-  const renderItem = ({ item }: { item: { id: string; name: string; price: string; image: any } }) => (
-    <TouchableOpacity style={styles.card}>
+  const handleAddToCart = (product: Product) => {
+    addToCart(product);
+  };
+
+  const renderItem = ({ item }: { item: Product }) => (
+    <View style={styles.card}>
+      {/* Botón de favoritos (corazón) en la esquina superior derecha */}
       <TouchableOpacity 
-        style={styles.favoriteButton} 
-        onPress={() => toggleFavorite(item.id)}
+        style={styles.favoriteButton}
+        activeOpacity={0.7}
+        onPress={() => handleFavoritePress(item)}
       >
         <Ionicons 
-          name="heart" 
+          name={isFavorite(item.id) ? "heart" : "heart-outline"} 
           size={22} 
-          color={favorites[item.id] ? 'green' : '#ddd'} 
+          color={isFavorite(item.id) ? 'red' : '#666'} 
         />
       </TouchableOpacity>
+      
       <Image source={item.image} style={styles.image} resizeMode="contain" />
       <Text style={styles.title}>{item.name}</Text>
+      
       <View style={styles.priceContainer}>
         <Text style={styles.price}>{item.price}</Text>
-        <TouchableOpacity style={styles.addButton} onPress={() => console.log(`Added ${item.name} to cart`)}>
+        {/* Botón de añadir al carrito (+) */}
+        <TouchableOpacity 
+          style={[
+            styles.addButton,
+            isInCart(item.id) ? styles.addButtonActive : {}
+          ]} 
+          onPress={() => handleAddToCart(item)}
+        >
           <Text style={styles.addButtonText}>+</Text>
         </TouchableOpacity>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 
   return (
     <View style={styles.root}>
-      {/* Header en SafeArea superior */}
+      {/* Header en la zona segura superior */}
       <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
         <Header location="Sarmiento 123" onPressLocation={() => {}} />
       </SafeAreaView>
 
-      {/* Título de pantalla */}
+      {/* Título de la pantalla */}
       <View style={styles.titleWrapper}>
-        <Text style={styles.titleScreen}>Dairy & Cereals</Text>
+        <Text style={styles.titleScreen}>Dairy & Cereal</Text>
       </View>
 
       {/* FlatList de productos */}
       <FlatList
-        data={diaryAndCerealProducts}
+        data={dairyAndCerealProducts}
         numColumns={2}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{
@@ -173,6 +191,10 @@ const styles = StyleSheet.create({
     top: 8,
     right: 8,
     zIndex: 10,
+    width: 30,
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   image: {
     width:        80,
@@ -204,6 +226,9 @@ const styles = StyleSheet.create({
     height: 24,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  addButtonActive: {
+    backgroundColor: '#005500', // Verde más oscuro para indicar que está en el carrito
   },
   addButtonText: {
     color: 'white',

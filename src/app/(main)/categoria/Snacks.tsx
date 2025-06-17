@@ -16,6 +16,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import BottomTabBar from '../../../components/BottomTabBar';
 import Header from '../../../components/Header';
+import { Product, useCart, useFavorites } from '../../_layout';
 
 const { width } = Dimensions.get('window');
 const CARD_MARGIN    = 10;
@@ -23,19 +24,22 @@ const CARD_WIDTH     = (width - 60) / 2;
 const CARD_HEIGHT    = 160;
 const TAB_BAR_HEIGHT = 60;
 
-// Simulación de productos “Snacks”
+// Lista de productos específicos para Snacks
 const snacksProducts = [
-  { id: '1', name: 'Doritos', price: '$2.50', image: require('../../../assets/images/snacks.png') },
-  { id: '2', name: 'Lays',    price: '$2.25', image: require('../../../assets/images/snacks.png') },
-  { id: '3', name: 'Pringles',price: '$3.00', image: require('../../../assets/images/snacks.png') },
-  { id: '4', name: 'Chips',   price: '$1.75', image: require('../../../assets/images/snacks.png') },
+  { id: 's1', name: 'Chips',       price: '$1.99', image: require('../../../assets/images/snacks.png') },
+  { id: 's2', name: 'Cookies',     price: '$2.50', image: require('../../../assets/images/snacks.png') },
+  { id: 's3', name: 'Chocolate',   price: '$3.25', image: require('../../../assets/images/snacks.png') },
+  { id: 's4', name: 'Popcorn',     price: '$1.50', image: require('../../../assets/images/snacks.png') },
+  { id: 's5', name: 'Nuts',        price: '$4.99', image: require('../../../assets/images/snacks.png') },
+  { id: 's6', name: 'Candy',       price: '$1.75', image: require('../../../assets/images/snacks.png') },
 ];
 
-export default function SnacksScreen() {
+export default function Snacks() {
   const [activeTab, setActiveTab] = useState('home');
-  const [favorites, setFavorites] = useState<{[key: string]: boolean}>({});
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { addFavorite, removeFavorite, isFavorite } = useFavorites();
+  const { addToCart, isInCart } = useCart();
 
   const handleTabPress = (tab: string) => {
     setActiveTab(tab);
@@ -58,64 +62,80 @@ export default function SnacksScreen() {
     }
   };
 
-  const toggleFavorite = (id: string) => {
-    setFavorites(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
+  const handleFavoritePress = (product: Product) => {
+    if (isFavorite(product.id)) {
+      removeFavorite(product.id);
+    } else {
+      addFavorite(product);
+    }
   };
 
-  const renderSnack = ({ item }: { item: { id: string; name: string; price: string; image: any } }) => (
-    <TouchableOpacity style={styles.card}>
+  const handleAddToCart = (product: Product) => {
+    addToCart(product);
+  };
+
+  const renderItem = ({ item }: { item: Product }) => (
+    <View style={styles.card}>
+      {/* Botón de favoritos (corazón) en la esquina superior derecha */}
       <TouchableOpacity 
-        style={styles.favoriteButton} 
-        onPress={() => toggleFavorite(item.id)}
+        style={styles.favoriteButton}
+        activeOpacity={0.7}
+        onPress={() => handleFavoritePress(item)}
       >
         <Ionicons 
-          name="heart" 
+          name={isFavorite(item.id) ? "heart" : "heart-outline"} 
           size={22} 
-          color={favorites[item.id] ? 'green' : '#ddd'} 
+          color={isFavorite(item.id) ? 'red' : '#666'} 
         />
       </TouchableOpacity>
+      
       <Image source={item.image} style={styles.image} resizeMode="contain" />
       <Text style={styles.title}>{item.name}</Text>
+      
       <View style={styles.priceContainer}>
         <Text style={styles.price}>{item.price}</Text>
-        <TouchableOpacity style={styles.addButton} onPress={() => console.log(`Added ${item.name} to cart`)}>
+        {/* Botón de añadir al carrito (+) */}
+        <TouchableOpacity 
+          style={[
+            styles.addButton,
+            isInCart(item.id) ? styles.addButtonActive : {}
+          ]} 
+          onPress={() => handleAddToCart(item)}
+        >
           <Text style={styles.addButtonText}>+</Text>
         </TouchableOpacity>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 
   return (
     <View style={styles.root}>
-      {/* 1) Header en zona segura superior */}
+      {/* Header en la zona segura superior */}
       <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
         <Header location="Sarmiento 123" onPressLocation={() => {}} />
       </SafeAreaView>
 
-      {/* 2) Título */}
+      {/* Título de la pantalla */}
       <View style={styles.titleWrapper}>
         <Text style={styles.titleScreen}>Snacks</Text>
       </View>
 
-      {/* 3) Listado de “snacksProducts” */}
+      {/* FlatList de productos */}
       <FlatList
         data={snacksProducts}
         numColumns={2}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{
           paddingHorizontal: 10,
-          paddingTop: 10,
-          paddingBottom: TAB_BAR_HEIGHT + insets.bottom,
+          paddingTop:       10,
+          paddingBottom:    TAB_BAR_HEIGHT + insets.bottom,
         }}
         columnWrapperStyle={styles.rowWrapper}
-        renderItem={renderSnack}
+        renderItem={renderItem}
         showsVerticalScrollIndicator={false}
       />
 
-      {/* 4) BottomTabBar absoluto al fondo real */}
+      {/* BottomTabBar absoluto al fondo real */}
       <BottomTabBar activeTab={activeTab} onTabPress={handleTabPress} />
     </View>
   );
@@ -123,17 +143,17 @@ export default function SnacksScreen() {
 
 const styles = StyleSheet.create({
   root: {
-    flex: 1,
+    flex:            1,
     backgroundColor: 'white',
   },
   headerSafeArea: {
     backgroundColor: 'white',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 6,
-    zIndex: 10,
+    shadowColor:     '#000',
+    shadowOffset:    { width: 0, height: 2 },
+    shadowOpacity:   0.1,
+    shadowRadius:    4,
+    elevation:       6,
+    zIndex:          10,
   },
   titleWrapper: {
     paddingHorizontal: 20,
@@ -151,26 +171,30 @@ const styles = StyleSheet.create({
     marginBottom:   20,
   },
   card: {
-    width:             CARD_WIDTH,
-    height:            CARD_HEIGHT,
-    backgroundColor:   'white',
-    borderRadius:      15,
-    marginHorizontal:  CARD_MARGIN / 2,
-    shadowColor:       '#000',
-    shadowOffset:      { width: 0, height: 2 },
-    shadowOpacity:     0.3,
-    shadowRadius:      4,
-    elevation:         5,
-    justifyContent:    'center',
-    alignItems:        'center',
-    padding:           10,
-    position:          'relative',
+    width:            CARD_WIDTH,
+    height:           CARD_HEIGHT,
+    backgroundColor:  'white',
+    borderRadius:     15,
+    marginHorizontal: CARD_MARGIN / 2,
+    shadowColor:      '#000',
+    shadowOffset:     { width: 0, height: 2 },
+    shadowOpacity:    0.3,
+    shadowRadius:     4,
+    elevation:        5,
+    justifyContent:   'center',
+    alignItems:       'center',
+    padding:          10,
+    position:         'relative',
   },
   favoriteButton: {
     position: 'absolute',
     top: 8,
     right: 8,
     zIndex: 10,
+    width: 30,
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   image: {
     width:        80,
@@ -202,6 +226,9 @@ const styles = StyleSheet.create({
     height: 24,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  addButtonActive: {
+    backgroundColor: '#005500', // Verde más oscuro para indicar que está en el carrito
   },
   addButtonText: {
     color: 'white',

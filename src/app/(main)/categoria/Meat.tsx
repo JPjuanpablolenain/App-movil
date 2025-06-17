@@ -16,8 +16,9 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import BottomTabBar from '../../../components/BottomTabBar';
 import Header from '../../../components/Header';
+import { Product, useCart, useFavorites } from '../../_layout';
 
-const { width }     = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 const CARD_MARGIN    = 10;
 const CARD_WIDTH     = (width - 60) / 2;
 const CARD_HEIGHT    = 160;
@@ -25,17 +26,20 @@ const TAB_BAR_HEIGHT = 60;
 
 // Lista de productos específicos para Meat
 const meatProducts = [
-  { id: '1', name: 'Chicken Breast', price: '$5.99', image: require('../../../assets/images/meat.png') },
-  { id: '2', name: 'Beef Steak',     price: '$8.50', image: require('../../../assets/images/meat.png') },
-  { id: '3', name: 'Pork Chops',     price: '$6.75', image: require('../../../assets/images/meat.png') },
-  { id: '4', name: 'Lamb',           price: '$9.99', image: require('../../../assets/images/meat.png') },
+  { id: 'm1', name: 'Chicken',     price: '$5.99', image: require('../../../assets/images/meat.png') },
+  { id: 'm2', name: 'Beef',        price: '$7.50', image: require('../../../assets/images/meat.png') },
+  { id: 'm3', name: 'Pork',        price: '$6.25', image: require('../../../assets/images/meat.png') },
+  { id: 'm4', name: 'Turkey',      price: '$8.50', image: require('../../../assets/images/meat.png') },
+  { id: 'm5', name: 'Lamb',        price: '$9.99', image: require('../../../assets/images/meat.png') },
+  { id: 'm6', name: 'Fish',        price: '$7.75', image: require('../../../assets/images/meat.png') },
 ];
 
-export default function MeatScreen() {
+export default function Meat() {
   const [activeTab, setActiveTab] = useState('home');
-  const [favorites, setFavorites] = useState<{[key: string]: boolean}>({});
-  const router                    = useRouter();
-  const insets                    = useSafeAreaInsets();
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { addFavorite, removeFavorite, isFavorite } = useFavorites();
+  const { addToCart, isInCart } = useCart();
 
   const handleTabPress = (tab: string) => {
     setActiveTab(tab);
@@ -58,53 +62,65 @@ export default function MeatScreen() {
     }
   };
 
-  const toggleFavorite = (id: string) => {
-    setFavorites(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
+  const handleFavoritePress = (product: Product) => {
+    if (isFavorite(product.id)) {
+      removeFavorite(product.id);
+    } else {
+      addFavorite(product);
+    }
   };
 
-  const renderMeat = ({
-    item,
-  }: {
-    item: { id: string; name: string; price: string; image: any };
-  }) => (
-    <TouchableOpacity style={styles.card}>
+  const handleAddToCart = (product: Product) => {
+    addToCart(product);
+  };
+
+  const renderItem = ({ item }: { item: Product }) => (
+    <View style={styles.card}>
+      {/* Botón de favoritos (corazón) en la esquina superior derecha */}
       <TouchableOpacity 
-        style={styles.favoriteButton} 
-        onPress={() => toggleFavorite(item.id)}
+        style={styles.favoriteButton}
+        activeOpacity={0.7}
+        onPress={() => handleFavoritePress(item)}
       >
         <Ionicons 
-          name="heart" 
+          name={isFavorite(item.id) ? "heart" : "heart-outline"} 
           size={22} 
-          color={favorites[item.id] ? 'green' : '#ddd'} 
+          color={isFavorite(item.id) ? 'red' : '#666'} 
         />
       </TouchableOpacity>
+      
       <Image source={item.image} style={styles.image} resizeMode="contain" />
       <Text style={styles.title}>{item.name}</Text>
+      
       <View style={styles.priceContainer}>
         <Text style={styles.price}>{item.price}</Text>
-        <TouchableOpacity style={styles.addButton} onPress={() => console.log(`Added ${item.name} to cart`)}>
+        {/* Botón de añadir al carrito (+) */}
+        <TouchableOpacity 
+          style={[
+            styles.addButton,
+            isInCart(item.id) ? styles.addButtonActive : {}
+          ]} 
+          onPress={() => handleAddToCart(item)}
+        >
           <Text style={styles.addButtonText}>+</Text>
         </TouchableOpacity>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 
   return (
     <View style={styles.root}>
-      {/* 1) Header en SafeArea superior */}
+      {/* Header en la zona segura superior */}
       <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
         <Header location="Sarmiento 123" onPressLocation={() => {}} />
       </SafeAreaView>
 
-      {/* 2) Título de pantalla */}
+      {/* Título de la pantalla */}
       <View style={styles.titleWrapper}>
         <Text style={styles.titleScreen}>Meat</Text>
       </View>
 
-      {/* 3) FlatList de productos de carne */}
+      {/* FlatList de productos */}
       <FlatList
         data={meatProducts}
         numColumns={2}
@@ -115,11 +131,11 @@ export default function MeatScreen() {
           paddingBottom:    TAB_BAR_HEIGHT + insets.bottom,
         }}
         columnWrapperStyle={styles.rowWrapper}
-        renderItem={renderMeat}
+        renderItem={renderItem}
         showsVerticalScrollIndicator={false}
       />
 
-      {/* 4) BottomTabBar absoluto al fondo real */}
+      {/* BottomTabBar absoluto al fondo real */}
       <BottomTabBar activeTab={activeTab} onTabPress={handleTabPress} />
     </View>
   );
@@ -175,6 +191,10 @@ const styles = StyleSheet.create({
     top: 8,
     right: 8,
     zIndex: 10,
+    width: 30,
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   image: {
     width:        80,
@@ -206,6 +226,9 @@ const styles = StyleSheet.create({
     height: 24,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  addButtonActive: {
+    backgroundColor: '#005500', // Verde más oscuro para indicar que está en el carrito
   },
   addButtonText: {
     color: 'white',
