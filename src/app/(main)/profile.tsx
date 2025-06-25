@@ -1,17 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState, useContext } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState } from 'react';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, /*useSafeAreaInsets*/ } from 'react-native-safe-area-context';
 
 import BottomTabBar from '../../components/BottomTabBar';
 import Header from '../../components/Header';
-import { AuthContext } from '../_layout';
 
 const ProfileScreen = () => {
   const [activeTab, setActiveTab] = useState('more');
   const router = useRouter();
-  const { logout } = useContext(AuthContext);
 
   const handleTabPress = (tab: string) => {
     setActiveTab(tab);
@@ -36,7 +34,8 @@ const ProfileScreen = () => {
   };
 
   const handleLogout = () => {
-    logout(); // Esto redirigirá automáticamente a la pantalla de login
+    // Aquí iría la lógica para cerrar sesión
+    router.push('/(auth)');
   };
 
   return (
@@ -52,64 +51,62 @@ const ProfileScreen = () => {
       </View>
 
       {/* 3) CONTENIDO PRINCIPAL */}
-      <ScrollView style={{flex: 1, width: '100%'}} contentContainerStyle={{paddingBottom: 20}}>
-        <View style={styles.profileContainer}>
-          <View style={styles.avatarContainer}>
-            <Image
-              source={require('../../assets/images/icon.png')}
-              style={styles.avatar}
-              resizeMode="cover"
-            />
-          </View>
-          <Text style={styles.userName}>Usuario</Text>
-          <Text style={styles.userEmail}>usuario@ejemplo.com</Text>
+      <View style={styles.profileContainer}>
+        <View style={styles.avatarContainer}>
+          <Image
+            source={require('../../assets/images/icon.png')}
+            style={styles.avatar}
+            resizeMode="cover"
+          />
+        </View>
+        <Text style={styles.userName}>Usuario</Text>
+        <Text style={styles.userEmail}>usuario@ejemplo.com</Text>
 
+        <TouchableOpacity style={styles.menuItem}>
+          <Ionicons name="person-outline" size={24} color="#666" />
+          <Text style={styles.menuItemText}>My Details</Text>
+          <Ionicons name="chevron-forward" size={20} color="#ccc" style={styles.chevron} />
+        </TouchableOpacity>
+
+
+        <View style={styles.infoContainer}>
           <TouchableOpacity style={styles.menuItem}>
-            <Ionicons name="person-outline" size={24} color="#666" />
-            <Text style={styles.menuItemText}>My Details</Text>
+            <Ionicons name="cart-outline" size={24} color="#666" />
+            <Text style={styles.menuItemText}>Orders</Text>
             <Ionicons name="chevron-forward" size={20} color="#ccc" style={styles.chevron} />
           </TouchableOpacity>
 
 
-          <View style={styles.infoContainer}>
-            <TouchableOpacity style={styles.menuItem}>
-              <Ionicons name="cart-outline" size={24} color="#666" />
-              <Text style={styles.menuItemText}>Orders</Text>
-              <Ionicons name="chevron-forward" size={20} color="#ccc" style={styles.chevron} />
-            </TouchableOpacity>
 
+          <TouchableOpacity style={styles.menuItem}>
+            <Ionicons name="time-outline" size={24} color="#666" />
+            <Text style={styles.menuItemText}>History</Text>
+            <Ionicons name="chevron-forward" size={20} color="#ccc" style={styles.chevron} />
+          </TouchableOpacity>
 
+          <TouchableOpacity style={styles.menuItem}>
+            <Ionicons name="notifications-outline" size={24} color="#666" />
+            <Text style={styles.menuItemText}>Notifications</Text>
+            <Ionicons name="chevron-forward" size={20} color="#ccc" style={styles.chevron} />
+          </TouchableOpacity>
 
-            <TouchableOpacity style={styles.menuItem}>
-              <Ionicons name="time-outline" size={24} color="#666" />
-              <Text style={styles.menuItemText}>History</Text>
-              <Ionicons name="chevron-forward" size={20} color="#ccc" style={styles.chevron} />
-            </TouchableOpacity>
+          <TouchableOpacity style={styles.menuItem}>
+            <Ionicons name="help-circle-outline" size={24} color="#666" />
+            <Text style={styles.menuItemText}>Help</Text>
+            <Ionicons name="chevron-forward" size={20} color="#ccc" style={styles.chevron} />
+          </TouchableOpacity>
 
-            <TouchableOpacity style={styles.menuItem}>
-              <Ionicons name="notifications-outline" size={24} color="#666" />
-              <Text style={styles.menuItemText}>Notifications</Text>
-              <Ionicons name="chevron-forward" size={20} color="#ccc" style={styles.chevron} />
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem}>
-              <Ionicons name="help-circle-outline" size={24} color="#666" />
-              <Text style={styles.menuItemText}>Help</Text>
-              <Ionicons name="chevron-forward" size={20} color="#ccc" style={styles.chevron} />
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem}>
-              <Ionicons name="information-circle-outline" size={24} color="#666" />
-              <Text style={styles.menuItemText}>About</Text>
-              <Ionicons name="chevron-forward" size={20} color="#ccc" style={styles.chevron} />
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Text style={styles.logoutButtonText}>Log Out</Text>
+          <TouchableOpacity style={styles.menuItem}>
+            <Ionicons name="information-circle-outline" size={24} color="#666" />
+            <Text style={styles.menuItemText}>About</Text>
+            <Ionicons name="chevron-forward" size={20} color="#ccc" style={styles.chevron} />
           </TouchableOpacity>
         </View>
-      </ScrollView>
+
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutButtonText}>Log Out</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* 4) BOTTOM TAB BAR */}
       <BottomTabBar activeTab={activeTab} onTabPress={handleTabPress} />

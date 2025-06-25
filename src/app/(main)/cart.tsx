@@ -71,9 +71,8 @@ const CartScreen = () => {
   };
 
   const handleScanQR = () => {
-    console.log('Scan QR Code');
     setModalVisible(false);
-    // Aquí iría la lógica para escanear el código QR
+    router.push('/(main)/scan');
   };
 
   const renderCartItem = ({ item }: { item: CartItem }) => (
