@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CameraView, Camera } from 'expo-camera';
 
@@ -11,6 +11,8 @@ export default function ScanScreen() {
   const [activeTab, setActiveTab] = useState('scan');
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
+  const [orderModalVisible, setOrderModalVisible] = useState(false);
+  const [errorModalVisible, setErrorModalVisible] = useState(false);
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -113,8 +115,14 @@ export default function ScanScreen() {
       <View style={styles.titleWrapper}>
         <Text style={styles.screenTitle}>Scanner</Text>
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.redButton} />
-          <TouchableOpacity style={styles.greenButton} />
+          <TouchableOpacity 
+            style={styles.redButton} 
+            onPress={() => setErrorModalVisible(true)}
+          />
+          <TouchableOpacity 
+            style={styles.greenButton} 
+            onPress={() => setOrderModalVisible(true)}
+          />
         </View>
       </View>
 
@@ -145,6 +153,79 @@ export default function ScanScreen() {
           </Text>
         </View>
       </View>
+
+      {/* Modal de orden aceptada */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={orderModalVisible}
+        onRequestClose={() => setOrderModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>¡Orden Aceptada!</Text>
+            <Text style={styles.modalMessage}>
+              Tu orden ha sido procesada exitosamente.
+            </Text>
+            
+            <TouchableOpacity 
+              style={styles.downloadButton}
+              onPress={() => {
+                Alert.alert('Descarga', 'Ticket descargado exitosamente');
+                setOrderModalVisible(false);
+              }}
+            >
+              <Text style={styles.downloadButtonText}>Descargar Ticket</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.backButton}
+              onPress={() => {
+                setOrderModalVisible(false);
+                router.push('/(main)/home');
+              }}
+            >
+              <Text style={styles.backButtonText}>Volver al Menú</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal de orden fallida */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={errorModalVisible}
+        onRequestClose={() => setErrorModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.errorModalTitle}>Orden Fallida</Text>
+            <Text style={styles.modalMessage}>
+              Hubo un problema al procesar tu orden. Por favor, inténtalo nuevamente.
+            </Text>
+            
+            <TouchableOpacity 
+              style={styles.retryButton}
+              onPress={() => {
+                setErrorModalVisible(false);
+              }}
+            >
+              <Text style={styles.retryButtonText}>Intentar Otra Vez</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.backButton}
+              onPress={() => {
+                setErrorModalVisible(false);
+                router.push('/(main)/home');
+              }}
+            >
+              <Text style={styles.backButtonText}>Volver al Menú</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       <BottomTabBar activeTab={activeTab} onTabPress={handleTabPress} />
     </View>
@@ -268,5 +349,86 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
+  },
+  // Estilos para el modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 30,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#A3C163',
+    marginBottom: 15,
+  },
+  modalMessage: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: '#666',
+    marginBottom: 25,
+  },
+  downloadButton: {
+    backgroundColor: '#A3C163',
+    borderRadius: 15,
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  downloadButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  backButton: {
+    backgroundColor: '#f0f0f0',
+    borderRadius: 15,
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    width: '100%',
+    alignItems: 'center',
+  },
+  backButtonText: {
+    color: '#666',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  errorModalTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#FF3B30',
+    marginBottom: 15,
+  },
+  retryButton: {
+    backgroundColor: '#FF3B30',
+    borderRadius: 15,
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
