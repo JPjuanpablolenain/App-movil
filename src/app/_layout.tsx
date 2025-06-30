@@ -64,7 +64,8 @@ export const useCart = () => {
 // Contexto para el estado de autenticación
 export const AuthContext = createContext({
   isLoggedIn: false,
-  login: () => {},
+  login: (email: string, password: string) => Promise.resolve({ success: false, message: '' }),
+  register: (name: string, email: string, password: string) => Promise.resolve({ success: false, message: '' }),
   logout: () => {},
 });
 
@@ -72,6 +73,7 @@ const RootNavigation = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isFirstLaunch, setIsFirstLaunch] = useState(true);
+
     const [favorites, setFavorites] = useState<Product[]>([]);
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
     
@@ -120,10 +122,10 @@ const RootNavigation = () => {
     
     const decreaseQuantity = (id: string) => {
         setCartItems(cartItems.map(item => 
-            item.id === id && item.quantity > 1
+            item.id === id
                 ? { ...item, quantity: item.quantity - 1 } 
                 : item
-        ).filter(item => !(item.id === id && item.quantity <= 1)));
+        ).filter(item => item.quantity > 0));
     };
     
     const isInCart = (id: string) => {
@@ -140,14 +142,54 @@ const RootNavigation = () => {
     };
     
     // Funciones de autenticación
-    const login = async () => {
-        await AsyncStorage.setItem('isLoggedIn', 'true');
-        await AsyncStorage.setItem('hasSeenSplash', 'true');
-        setIsLoggedIn(true);
+    const register = async (name: string, email: string, password: string) => {
+        try {
+            const existingUsers = await AsyncStorage.getItem('users');
+            const users = existingUsers ? JSON.parse(existingUsers) : [];
+            
+            // Verificar si el usuario ya existe
+            if (users.find((user: any) => user.email === email)) {
+                return { success: false, message: 'User already exists' };
+            }
+            
+            // Agregar nuevo usuario
+            users.push({ name, email, password });
+            await AsyncStorage.setItem('users', JSON.stringify(users));
+            
+            return { success: true, message: 'User registered successfully' };
+        } catch (error) {
+            return { success: false, message: 'Registration failed' };
+        }
+    };
+    
+    const login = async (email: string, password: string) => {
+        try {
+            const existingUsers = await AsyncStorage.getItem('users');
+            const users = existingUsers ? JSON.parse(existingUsers) : [];
+            
+            // Verificar credenciales
+            const user = users.find((user: any) => user.email === email && user.password === password);
+            
+            if (user) {
+                await AsyncStorage.setItem('isLoggedIn', 'true');
+                await AsyncStorage.setItem('currentUser', email);
+                // Manejar cuentas antiguas sin nombre
+                const userName = user.name || 'Usuario';
+                await AsyncStorage.setItem('currentUserName', userName);
+                setIsLoggedIn(true);
+                return { success: true, message: 'Login successful' };
+            } else {
+                return { success: false, message: 'Invalid credentials' };
+            }
+        } catch (error) {
+            return { success: false, message: 'Login failed' };
+        }
     };
     
     const logout = async () => {
         await AsyncStorage.removeItem('isLoggedIn');
+        await AsyncStorage.removeItem('currentUser');
+        await AsyncStorage.removeItem('currentUserName');
         setIsLoggedIn(false);
     };
     
@@ -160,6 +202,7 @@ const RootNavigation = () => {
                 setIsLoggedIn(loggedIn === 'true');
                 setIsFirstLaunch(!hasSeenSplash);
                 setIsLoading(false);
+
                 
                 // Ocultar el splash screen nativo
                 SplashScreen.hideAsync();
@@ -178,7 +221,7 @@ const RootNavigation = () => {
     }
     
     return (
-        <AuthContext.Provider value={{ isLoggedIn, login, logout }}>
+        <AuthContext.Provider value={{ isLoggedIn, login, register, logout }}>
             <FavoritesContext.Provider value={{ favorites, addFavorite, removeFavorite, isFavorite }}>
                 <CartContext.Provider value={{ 
                     cartItems, 
@@ -191,15 +234,6 @@ const RootNavigation = () => {
                     getItemQuantity
                 }}>
                     <Stack screenOptions={{ headerShown: false }}/>
-                    {isLoggedIn ? (
-                        <Redirect href="/(main)/home" />
-                    ) : (
-                        isFirstLaunch ? (
-                            <Redirect href="/(auth)" />
-                        ) : (
-                            <Redirect href="/(auth)/login" />
-                        )
-                    )}
                 </CartContext.Provider>
             </FavoritesContext.Provider>
         </AuthContext.Provider>

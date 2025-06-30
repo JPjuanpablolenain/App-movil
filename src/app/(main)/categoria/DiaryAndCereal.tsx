@@ -35,11 +35,11 @@ const dairyAndCerealProducts = [
 ];
 
 export default function DiaryAndCereal() {
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState('');
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { addFavorite, removeFavorite, isFavorite } = useFavorites();
-  const { addToCart, isInCart } = useCart();
+  const { addToCart, isInCart, getItemQuantity, decreaseQuantity } = useCart();
 
   const handleTabPress = (tab: string) => {
     setActiveTab(tab);
@@ -72,6 +72,7 @@ export default function DiaryAndCereal() {
 
   const handleAddToCart = (product: Product) => {
     addToCart(product);
+    // No cambiar el tab activo para evitar redirección
   };
 
   const renderItem = ({ item }: { item: Product }) => (
@@ -94,16 +95,28 @@ export default function DiaryAndCereal() {
       
       <View style={styles.priceContainer}>
         <Text style={styles.price}>{item.price}</Text>
-        {/* Botón de añadir al carrito (+) */}
-        <TouchableOpacity 
-          style={[
-            styles.addButton,
-            isInCart(item.id) ? styles.addButtonActive : {}
-          ]} 
-          onPress={() => handleAddToCart(item)}
-        >
-          <Text style={styles.addButtonText}>+</Text>
-        </TouchableOpacity>
+        <View style={styles.cartSection}>
+          {isInCart(item.id) && (
+            <TouchableOpacity 
+              style={styles.decreaseButton}
+              onPress={() => decreaseQuantity(item.id)}
+            >
+              <Text style={styles.decreaseButtonText}>-</Text>
+            </TouchableOpacity>
+          )}
+          {isInCart(item.id) && (
+            <Text style={styles.quantityText}>{getItemQuantity(item.id)}</Text>
+          )}
+          <TouchableOpacity 
+            style={[
+              styles.addButton,
+              isInCart(item.id) ? styles.addButtonActive : {}
+            ]} 
+            onPress={() => handleAddToCart(item)}
+          >
+            <Text style={styles.addButtonText}>+</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -231,6 +244,30 @@ const styles = StyleSheet.create({
     backgroundColor: '#005500', // Verde más oscuro para indicar que está en el carrito
   },
   addButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+    lineHeight: 22,
+  },
+  cartSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  quantityText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: 'green',
+  },
+  decreaseButton: {
+    backgroundColor: 'red',
+    borderRadius: 15,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  decreaseButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',

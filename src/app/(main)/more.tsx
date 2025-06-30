@@ -1,15 +1,46 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import BottomTabBar from '../../components/BottomTabBar';
 import Header from '../../components/Header';
 
 export default function MoreScreen() {
   const [activeTab, setActiveTab] = useState('more');
+  const [userEmail, setUserEmail] = useState('usuario@ejemplo.com');
+  const [userName, setUserName] = useState('Usuario');
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      try {
+        const email = await AsyncStorage.getItem('currentUser');
+        if (email) {
+          setUserEmail(email);
+        }
+        
+        const name = await AsyncStorage.getItem('currentUserName');
+        if (name) {
+          setUserName(name);
+        }
+        
+        const savedImage = await AsyncStorage.getItem(`profileImage_${email}`);
+        if (savedImage) {
+          setProfileImage(savedImage);
+        }
+      } catch (error) {
+        console.log('Error getting current user:', error);
+      }
+    };
+    
+    getCurrentUser();
+  }, []);
+
+
 
   const handleTabPress = (tab: string) => {
     setActiveTab(tab);
@@ -43,27 +74,21 @@ export default function MoreScreen() {
         <Header location="Sarmiento 123" onPressLocation={() => { }} />
       </SafeAreaView>
 
-      {/* 2) TÍTULO */}
-      <View style={styles.titleWrapper}>
-        <Text style={styles.screenTitle}>Profile</Text>
-      </View>
-
-      {/* 3) CONTENIDO PRINCIPAL */}
-      <ScrollView style={{flex: 1, width: '100%'}} contentContainerStyle={{paddingBottom: 20}}>
+      {/* 2) CONTENIDO PRINCIPAL */}
+      <ScrollView style={{flex: 1, width: '100%'}} contentContainerStyle={{paddingBottom: 120}}>
         <View style={styles.profileContainer}>
           <View style={styles.avatarContainer}>
             <Image
-              source={require('../../assets/images/icon.png')}
+              source={profileImage ? { uri: profileImage } : require('../../assets/images/icon.png')}
               style={styles.avatar}
               resizeMode="cover"
             />
           </View>
-          <Text style={styles.userName}>Usuario</Text>
-          <Text style={styles.userEmail}>usuario@ejemplo.com</Text>
+          <Text style={styles.userName}>¡Hola {userName}!</Text>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/(main)/profile')}>
             <Ionicons name="person-outline" size={24} color="#666" />
-            <Text style={styles.menuItemText}>My Details</Text>
+            <Text style={styles.menuItemText}>Profile</Text>
             <Ionicons name="chevron-forward" size={20} color="#ccc" style={styles.chevron} />
           </TouchableOpacity>
 
@@ -118,28 +143,19 @@ const styles = StyleSheet.create({
   },
   headerSafeArea: {
     backgroundColor: 'white',
+    borderRadius: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: -1 },
+    shadowOpacity: 0.3,
     shadowRadius: 4,
-    elevation: 6,
+    elevation: 10,
     zIndex: 10,
   },
-  titleWrapper: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    backgroundColor: 'white',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#ddd',
-  },
-  screenTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-  },
+
   profileContainer: {
     flex: 1,
     alignItems: 'center',
-    paddingTop: 20,
+    paddingTop: 40,
     paddingHorizontal: 20,
   },
   avatarContainer: {
@@ -156,10 +172,11 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+
   userName: {
     fontSize: 22,
     fontWeight: '700',
-    marginBottom: 5,
+    marginBottom: 30,
   },
   userEmail: {
     fontSize: 16,

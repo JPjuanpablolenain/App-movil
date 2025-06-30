@@ -1,28 +1,22 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, StatusBar } from 'react-native';
 
 const Header = ({ location, onPressLocation }: {
   location: string;
   onPressLocation?: () => void;
 }) => {
-  const router = useRouter();
-
-  const handleProfilePress = () => {
-    router.push('/(main)/profile');
-  };
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity onPress={handleProfilePress}>
-        <Ionicons name="person-circle-outline" size={28} color="black" />
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.locationContainer} onPress={onPressLocation}>
-        <Ionicons name="location-outline" size={18} color="black" />
-        <Text style={styles.locationText}>{location}</Text>
-      </TouchableOpacity>
-    </View>
+    <>
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
+      <View style={styles.container}>
+        <TouchableOpacity style={styles.locationContainer} onPress={onPressLocation}>
+          <Ionicons name="location-outline" size={18} color="black" />
+          <Text style={styles.locationText}>{location}</Text>
+        </TouchableOpacity>
+      </View>
+    </>
   );
 };
 
@@ -30,11 +24,12 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     width: '100%',
     paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingTop: 45,
     paddingBottom: 15,
+    backgroundColor: 'transparent',
   },
   locationContainer: {
     backgroundColor: '#A3C163',

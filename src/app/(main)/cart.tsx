@@ -235,11 +235,12 @@ const styles = StyleSheet.create({
   },
   headerSafeArea: {
     backgroundColor: 'white',
+    borderRadius: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: -1 },
+    shadowOpacity: 0.3,
     shadowRadius: 4,
-    elevation: 6,
+    elevation: 10,
     zIndex: 10,
   },
   titleWrapper: {

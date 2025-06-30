@@ -9,47 +9,32 @@ type Props = {
 
 const CategoryCard = ({ image, label, onPress }: Props) => {
   return (
-    <View style={styles.wrapper}>
-      {/* Solo este recuadro tiene elevación */}
-      <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={onPress}>
-        <Image source={image} style={styles.image} resizeMode="contain" />
-      </TouchableOpacity>
-
-      {/* Texto fuera y sin elevación */}
+    <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={onPress}>
+      <Image source={image} style={styles.image} resizeMode="contain" />
       <Text style={styles.label}>{label}</Text>
-    </View>
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  wrapper: {
-    width: 140,
-    alignItems: 'center',
-    marginVertical: 12,
-
-  },
   card: {
     width: '100%',
-    height: 120,
-    borderRadius: 15,
-    backgroundColor: 'white',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 8,
   },
   image: {
-    width: '100%',
-    height: '80%',
+    width: '70%',
+    height: '60%',
   },
   label: {
-    marginTop: 8,       // separa el texto por debajo del recuadro
-    fontWeight: '500',
+    marginTop: 8,
+    fontWeight: '600',
     color: '#222',
-    textAlign: 'center',  
-    
+    textAlign: 'center',
+    fontSize: 14,
+    paddingHorizontal: 4,
   },
 });
 

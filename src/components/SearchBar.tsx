@@ -15,6 +15,8 @@ const SearchBar = ({ value, onChangeText }: {
         value={value}
         onChangeText={onChangeText}
         style={styles.input}
+        blurOnSubmit={false}
+        returnKeyType="search"
       />
       <Ionicons name="filter" size={20} color="#666" />
     </View>

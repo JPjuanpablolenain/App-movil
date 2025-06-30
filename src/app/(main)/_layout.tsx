@@ -1,14 +1,20 @@
 import { Stack } from 'expo-router';
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { AuthContext } from '../_layout';
-import { Redirect } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 
 export default function MainLayout() {
   const { isLoggedIn } = useContext(AuthContext);
+  const router = useRouter();
   
-  // Si no está autenticado, redirigir a la pantalla de login
+  useEffect(() => {
+    if (!isLoggedIn) {
+      router.replace('/(auth)/login');
+    }
+  }, [isLoggedIn]);
+  
   if (!isLoggedIn) {
-    return <Redirect href="/(auth)/login" />;
+    return null;
   }
   
   return <Stack screenOptions={{ headerShown: false }} />;

@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, Text } from 'react-native';
 
 const SectionTitle = ({ text }: { text: string }) => {
-  return <Text style={styles.title}>{text}</Text>;
+  return <Text style={styles.title} numberOfLines={1} adjustsFontSizeToFit>{text}</Text>;
 };
 
 const styles = StyleSheet.create({
@@ -13,6 +13,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 10,
     color: '#222',
+    flexShrink: 1,
   },
 });
 

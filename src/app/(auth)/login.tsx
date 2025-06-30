@@ -1,4 +1,6 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useRef } from 'react';
+import { Alert, Animated } from 'react-native';
+import { useRouter } from 'expo-router';
 import {
     KeyboardAvoidingView,
     Platform,
@@ -17,17 +19,54 @@ import { AuthContext } from '../_layout';
 
 const LoginScreen = () => {
   const [selectedTab, setSelectedTab] = useState<'login' | 'signup'>('login');
-  const { login } = useContext(AuthContext);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const { login, register } = useContext(AuthContext);
+  const router = useRouter();
+  const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  const handleLogin = () => {
-    login(); // Esto redirigirá automáticamente a la pantalla principal
+  const handleSubmit = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please fill all fields');
+      return;
+    }
+    
+    if (selectedTab === 'signup') {
+      if (password !== confirmPassword) {
+        Alert.alert('Error', 'Passwords do not match');
+        return;
+      }
+      
+      const result = await register(email, password);
+      if (result.success) {
+        Alert.alert('Success', 'Account created successfully!');
+        setSelectedTab('login');
+      } else {
+        Alert.alert('Error', result.message);
+      }
+    } else {
+      const result = await login(email, password);
+      if (result.success) {
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(() => {
+          router.replace('/(main)/welcome');
+        });
+      } else {
+        Alert.alert('Error', result.message);
+      }
+    }
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      style={styles.container}
-    >
+    <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.container}
+      >
       <AuthCard>
         <ScrollView
           contentContainerStyle={styles.cardContent}
@@ -61,18 +100,34 @@ const LoginScreen = () => {
 
           {/* Inputs */}
           <View style={styles.inputsContainer}>
-            <FormInput placeholder="Email address" />
-            <FormInput placeholder="Password" secureTextEntry />
+            <FormInput 
+              placeholder="Email address" 
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            <FormInput 
+              placeholder="Password" 
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry 
+            />
             {selectedTab === 'signup' && (
-              <FormInput placeholder="Confirm password" secureTextEntry />
+              <FormInput 
+                placeholder="Confirm password" 
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry 
+              />
             )}
           </View>
 
           {/* Botón */}
           <View style={styles.section}>
            <AppButton
-                label="Log In"
-                onPress={handleLogin}
+                label={selectedTab === 'login' ? 'Log In' : 'Sign Up'}
+                onPress={handleSubmit}
             />
           </View>
 
@@ -94,6 +149,7 @@ const LoginScreen = () => {
         </ScrollView>
       </AuthCard>
     </KeyboardAvoidingView>
+    </Animated.View>
   );
 };
 
