@@ -27,12 +27,12 @@ const TAB_BAR_HEIGHT = 60;
 
 // Lista de productos específicos para Dairy and Cereal
 const dairyAndCerealProducts = [
-  { id: 'd1', name: 'Milk',        price: '$2.99', image: require('../../../assets/images/dairy.png') },
-  { id: 'd2', name: 'Cheese',      price: '$4.50', image: require('../../../assets/images/dairy.png') },
-  { id: 'd3', name: 'Yogurt',      price: '$1.25', image: require('../../../assets/images/dairy.png') },
-  { id: 'd4', name: 'Cereal',      price: '$3.50', image: require('../../../assets/images/dairy.png') },
-  { id: 'd5', name: 'Butter',      price: '$2.99', image: require('../../../assets/images/dairy.png') },
-  { id: 'd6', name: 'Oatmeal',     price: '$3.75', image: require('../../../assets/images/dairy.png') },
+  { id: 'd1', name: 'Milk',        price: '$2.99', image: require('../../../assets/images/milk.png') },
+  { id: 'd2', name: 'Cheese',      price: '$4.50', image: require('../../../assets/images/cheese.png') },
+  { id: 'd3', name: 'Yogurt',      price: '$1.25', image: require('../../../assets/images/yogurt.png') },
+  { id: 'd4', name: 'Cereal',      price: '$3.50', image: require('../../../assets/images/cereal.png') },
+  { id: 'd5', name: 'Butter',      price: '$2.99', image: require('../../../assets/images/butter.png') },
+  { id: 'd6', name: 'Oatmeal',     price: '$3.75', image: require('../../../assets/images/oatmeal.png') },
 ];
 
 export default function DiaryAndCereal() {

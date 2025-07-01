@@ -27,12 +27,12 @@ const TAB_BAR_HEIGHT = 60;
 
 // Lista de productos específicos para Meat
 const meatProducts = [
-  { id: 'm1', name: 'Chicken',     price: '$5.99', image: require('../../../assets/images/meat.png') },
-  { id: 'm2', name: 'Beef',        price: '$7.50', image: require('../../../assets/images/meat.png') },
-  { id: 'm3', name: 'Pork',        price: '$6.25', image: require('../../../assets/images/meat.png') },
-  { id: 'm4', name: 'Turkey',      price: '$8.50', image: require('../../../assets/images/meat.png') },
-  { id: 'm5', name: 'Lamb',        price: '$9.99', image: require('../../../assets/images/meat.png') },
-  { id: 'm6', name: 'Fish',        price: '$7.75', image: require('../../../assets/images/meat.png') },
+  { id: 'm1', name: 'Chicken',     price: '$5.99', image: require('../../../assets/images/chiken.png') },
+  { id: 'm2', name: 'Beef',        price: '$7.50', image: require('../../../assets/images/beef.png') },
+  { id: 'm3', name: 'Pork',        price: '$6.25', image: require('../../../assets/images/pork.png') },
+  { id: 'm4', name: 'Turkey',      price: '$8.50', image: require('../../../assets/images/turkey.png') },
+  { id: 'm5', name: 'Lamb',        price: '$9.99', image: require('../../../assets/images/lamb.png') },
+  { id: 'm6', name: 'Fish',        price: '$7.75', image: require('../../../assets/images/fish.png') },
 ];
 
 export default function Meat() {

@@ -27,12 +27,12 @@ const TAB_BAR_HEIGHT = 60;
 
 // Lista de productos específicos para Beverages
 const beveragesProducts = [
-  { id: 'b1', name: 'Water',       price: '$0.99', image: require('../../../assets/images/beverages.png') },
-  { id: 'b2', name: 'Soda',        price: '$1.50', image: require('../../../assets/images/beverages.png') },
-  { id: 'b3', name: 'Orange Juice', price: '$2.25', image: require('../../../assets/images/beverages.png') },
-  { id: 'b4', name: 'Coffee',      price: '$3.50', image: require('../../../assets/images/beverages.png') },
-  { id: 'b5', name: 'Tea',         price: '$2.99', image: require('../../../assets/images/beverages.png') },
-  { id: 'b6', name: 'Energy Drink', price: '$4.75', image: require('../../../assets/images/beverages.png') },
+  { id: 'b1', name: 'Water',       price: '$0.99', image: require('../../../assets/images/water.png') },
+  { id: 'b2', name: 'Soda',        price: '$1.50', image: require('../../../assets/images/soda.png') },
+  { id: 'b3', name: 'Orange Juice', price: '$2.25', image: require('../../../assets/images/orangejuice.png') },
+  { id: 'b4', name: 'Coffee',      price: '$3.50', image: require('../../../assets/images/coffe.png') },
+  { id: 'b5', name: 'Tea',         price: '$2.99', image: require('../../../assets/images/tea.png') },
+  { id: 'b6', name: 'Energy Drink', price: '$4.75', image: require('../../../assets/images/energy drink.png') },
 ];
 
 export default function Beverages() {

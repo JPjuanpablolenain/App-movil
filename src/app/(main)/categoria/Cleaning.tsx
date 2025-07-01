@@ -27,12 +27,12 @@ const TAB_BAR_HEIGHT = 60;
 
 // Lista de productos específicos para Cleaning
 const cleaningProducts = [
-  { id: 'c1', name: 'Detergent',    price: '$5.99', image: require('../../../assets/images/cleaning.png') },
-  { id: 'c2', name: 'Soap',         price: '$2.50', image: require('../../../assets/images/cleaning.png') },
-  { id: 'c3', name: 'Bleach',       price: '$3.25', image: require('../../../assets/images/cleaning.png') },
-  { id: 'c4', name: 'Glass Cleaner', price: '$4.50', image: require('../../../assets/images/cleaning.png') },
-  { id: 'c5', name: 'Sponges',      price: '$1.99', image: require('../../../assets/images/cleaning.png') },
-  { id: 'c6', name: 'Floor Cleaner', price: '$6.75', image: require('../../../assets/images/cleaning.png') },
+  { id: 'c1', name: 'Detergent',    price: '$5.99', image: require('../../../assets/images/detergent.png') },
+  { id: 'c2', name: 'Soap',         price: '$2.50', image: require('../../../assets/images/soap.png') },
+  { id: 'c3', name: 'Bleach',       price: '$3.25', image: require('../../../assets/images/bleach.png') },
+  { id: 'c4', name: 'Glass Cleaner', price: '$4.50', image: require('../../../assets/images/glass clenaer.png') },
+  { id: 'c5', name: 'Sponges',      price: '$1.99', image: require('../../../assets/images/sponges.png') },
+  { id: 'c6', name: 'Floor Cleaner', price: '$6.75', image: require('../../../assets/images/floor cleaner.png') },
 ];
 
 export default function Cleaning() {

@@ -27,12 +27,12 @@ const TAB_BAR_HEIGHT = 60;
 
 // Lista de productos específicos para Snacks
 const snacksProducts = [
-  { id: 's1', name: 'Chips',       price: '$1.99', image: require('../../../assets/images/snacks.png') },
-  { id: 's2', name: 'Cookies',     price: '$2.50', image: require('../../../assets/images/snacks.png') },
-  { id: 's3', name: 'Chocolate',   price: '$3.25', image: require('../../../assets/images/snacks.png') },
-  { id: 's4', name: 'Popcorn',     price: '$1.50', image: require('../../../assets/images/snacks.png') },
-  { id: 's5', name: 'Nuts',        price: '$4.99', image: require('../../../assets/images/snacks.png') },
-  { id: 's6', name: 'Candy',       price: '$1.75', image: require('../../../assets/images/snacks.png') },
+  { id: 's1', name: 'Chips',       price: '$1.99', image: require('../../../assets/images/snaks.png') },
+  { id: 's2', name: 'Cookies',     price: '$2.50', image: require('../../../assets/images/cookies.png') },
+  { id: 's3', name: 'Chocolate',   price: '$3.25', image: require('../../../assets/images/chocolate.png') },
+  { id: 's4', name: 'Popcorn',     price: '$1.50', image: require('../../../assets/images/popcorn.png') },
+  { id: 's5', name: 'Nuts',        price: '$4.99', image: require('../../../assets/images/nuts.png') },
+  { id: 's6', name: 'Candy',       price: '$1.75', image: require('../../../assets/images/candy.png') },
 ];
 
 export default function Snacks() {

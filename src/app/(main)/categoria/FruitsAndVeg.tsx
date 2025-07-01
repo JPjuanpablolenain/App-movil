@@ -27,12 +27,12 @@ const TAB_BAR_HEIGHT = 60;
 
 // Lista de productos específicos para Fruits and Vegetables
 const fruitsAndVegProducts = [
-  { id: '1', name: 'Apple',       price: '$0.99', image: require('../../../assets/images/fruits.png') },
-  { id: '2', name: 'Banana',      price: '$0.50', image: require('../../../assets/images/fruits.png') },
-  { id: '3', name: 'Carrot',      price: '$1.25', image: require('../../../assets/images/fruits.png') },
-  { id: '4', name: 'Tomato',      price: '$1.50', image: require('../../../assets/images/fruits.png') },
-  { id: '5', name: 'Strawberry',  price: '$2.99', image: require('../../../assets/images/fruits.png') },
-  { id: '6', name: 'Lettuce',     price: '$1.75', image: require('../../../assets/images/fruits.png') },
+  { id: '1', name: 'Apple',       price: '$0.99', image: require('../../../assets/images/apple.png') },
+  { id: '2', name: 'Banana',      price: '$0.50', image: require('../../../assets/images/banana.png') },
+  { id: '3', name: 'Carrot',      price: '$1.25', image: require('../../../assets/images/carrot.png') },
+  { id: '4', name: 'Tomato',      price: '$1.50', image: require('../../../assets/images/tomato.png') },
+  { id: '5', name: 'Strawberry',  price: '$2.99', image: require('../../../assets/images/strawberry.png') },
+  { id: '6', name: 'Lettuce',     price: '$1.75', image: require('../../../assets/images/lettuce.png') },
 ];
 
 export default function FruitsAndVeg() {
