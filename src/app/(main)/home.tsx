@@ -3,11 +3,12 @@ import CategoryCard from '@/src/components/CategoryCard';
 import Header from '@/src/components/Header';
 import SearchBar from '@/src/components/SearchBar';
 import SectionTitle from '@/src/components/SectionTitle';
-import React, { useState, useCallback } from 'react';
-import { Dimensions, FlatList, StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { Dimensions, FlatList, StyleSheet, View, Text, TouchableOpacity, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
 const CARD_MARGIN = 10;
@@ -55,7 +56,74 @@ const HomeScreen = () => {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('home');
   const [showSearchShadow, setShowSearchShadow] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState('Select Location');
+  const [userName, setUserName] = useState('User');
   const router = useRouter();
+  const cartAnimation = useRef(new Animated.Value(300)).current;
+  
+  useEffect(() => {
+    loadCurrentLocation();
+    loadUserName();
+    startCartAnimation();
+  }, []);
+  
+  const startCartAnimation = () => {
+    const animate = () => {
+      cartAnimation.setValue(300);
+      
+      Animated.sequence([
+        Animated.timing(cartAnimation, {
+          toValue: 0,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+        Animated.delay(1500),
+        Animated.timing(cartAnimation, {
+          toValue: -300,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+        Animated.delay(500),
+      ]).start(() => animate());
+    };
+    
+    animate();
+  };
+  
+  const loadUserName = async () => {
+    try {
+      const name = await AsyncStorage.getItem('currentUserName');
+      if (name) {
+        setUserName(name);
+      }
+    } catch (error) {
+      console.log('Error loading user name:', error);
+    }
+  };
+  
+  const loadCurrentLocation = async () => {
+    try {
+      const currentUser = await AsyncStorage.getItem('currentUser');
+      if (currentUser) {
+        const location = await AsyncStorage.getItem(`currentLocation_${currentUser}`);
+        if (location) {
+          const savedSupermarkets = await AsyncStorage.getItem(`visitedSupermarkets_${currentUser}`);
+          const supermarkets = savedSupermarkets ? JSON.parse(savedSupermarkets) : [];
+          
+          // Solo mostrar ubicación si existe en la lista de supermercados
+          if (supermarkets.some(s => s.name === location)) {
+            setCurrentLocation(location);
+          } else {
+            setCurrentLocation('Select Location');
+          }
+        } else {
+          setCurrentLocation('Select Location');
+        }
+      }
+    } catch (error) {
+      console.log('Error loading location:', error);
+    }
+  };
 
   const getGradientColors = (category: string) => {
     switch(category) {
@@ -145,12 +213,18 @@ const HomeScreen = () => {
   return (
     <View style={styles.container}>
       <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
-        <Header location="Sarmiento 123" onPressLocation={() => {}} />
+        <Header 
+          location={currentLocation} 
+          onPressLocation={() => {}} 
+          onLocationChange={(newLocation) => setCurrentLocation(newLocation)}
+        />
       </SafeAreaView>
 
-      <View style={[styles.searchWrapper, showSearchShadow && styles.searchWrapperWithShadow]}>
-        <SearchBar value={search} onChangeText={setSearch} />
-      </View>
+      {currentLocation !== 'Select Location' && (
+        <View style={[styles.searchWrapper, showSearchShadow && styles.searchWrapperWithShadow]}>
+          <SearchBar value={search} onChangeText={setSearch} />
+        </View>
+      )}
 
       {search.length > 0 ? (
         <FlatList
@@ -174,6 +248,27 @@ const HomeScreen = () => {
           }}
           scrollEventThrottle={16}
         />
+      ) : currentLocation === 'Select Location' ? (
+        <View style={styles.noSupermarketContainer}>
+          <Animated.View style={[
+            styles.welcomeIcon,
+            {
+              transform: [{ translateX: cartAnimation }]
+            }
+          ]}>
+            <Text style={styles.cartEmoji}>🛒</Text>
+          </Animated.View>
+          <Text style={styles.noSupermarketTitle}>Hey {userName}!</Text>
+          <Text style={styles.noSupermarketMessage}>
+            Let's find a supermarket to start your shopping adventure
+          </Text>
+          <TouchableOpacity 
+            style={styles.scanButton}
+            onPress={() => router.push('/(main)/scan')}
+          >
+            <Text style={styles.scanButtonText}>Scan QR Code</Text>
+          </TouchableOpacity>
+        </View>
       ) : (
         <FlatList
           key="categories"
@@ -306,5 +401,49 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: 'green',
+  },
+  noSupermarketContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+    paddingBottom: 120,
+  },
+  welcomeIcon: {
+    marginBottom: 20,
+  },
+  cartEmoji: {
+    fontSize: 64,
+  },
+  noSupermarketTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#A3C163',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  noSupermarketMessage: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 30,
+    paddingHorizontal: 20,
+  },
+  scanButton: {
+    backgroundColor: '#A3C163',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    shadowColor: '#A3C163',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  scanButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });

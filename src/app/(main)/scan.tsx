@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Alert, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CameraView, Camera } from 'expo-camera';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import BottomTabBar from '../../components/BottomTabBar';
 import Header from '../../components/Header';
@@ -14,6 +15,8 @@ export default function ScanScreen() {
   const [scanned, setScanned] = useState(false);
   const [orderModalVisible, setOrderModalVisible] = useState(false);
   const [errorModalVisible, setErrorModalVisible] = useState(false);
+  const [supermarketModalVisible, setSupermarketModalVisible] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState('Select Location');
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { saveOrder } = useCart();
@@ -25,7 +28,32 @@ export default function ScanScreen() {
     };
 
     getCameraPermissions();
+    loadCurrentLocation();
   }, []);
+  
+  const loadCurrentLocation = async () => {
+    try {
+      const currentUser = await AsyncStorage.getItem('currentUser');
+      if (currentUser) {
+        const savedSupermarkets = await AsyncStorage.getItem(`visitedSupermarkets_${currentUser}`);
+        const supermarkets = savedSupermarkets ? JSON.parse(savedSupermarkets) : [];
+        
+        if (supermarkets.length === 0) {
+          setCurrentLocation('Select Location');
+          await AsyncStorage.removeItem(`currentLocation_${currentUser}`);
+        } else {
+          const location = await AsyncStorage.getItem(`currentLocation_${currentUser}`);
+          if (location && supermarkets.some(s => s.name === location)) {
+            setCurrentLocation(location);
+          } else {
+            setCurrentLocation('Select Location');
+          }
+        }
+      }
+    } catch (error) {
+      console.log('Error loading location:', error);
+    }
+  };
 
   const handleTabPress = (tab: string) => {
     setActiveTab(tab);
@@ -47,30 +75,86 @@ export default function ScanScreen() {
     }
   };
 
-  const handleBarcodeScanned = ({ type, data }) => {
+  const handleBarcodeScanned = async ({ type, data }) => {
     setScanned(true);
-    Alert.alert(
-      'Código escaneado',
-      `Tipo: ${type}\nDatos: ${data}`,
-      [
-        {
-          text: 'Escanear nuevamente',
-          onPress: () => setScanned(false),
-        },
-        {
-          text: 'Cerrar',
-          style: 'cancel',
-          onPress: () => setScanned(false),
-        },
-      ]
-    );
+    
+    try {
+      // Intentar parsear como JSON para supermercados
+      const qrData = JSON.parse(data);
+      
+      if (qrData.type === 'supermarket') {
+        // Es un QR de supermercado
+        await addSupermarket(qrData);
+        setCurrentLocation(qrData.name);
+        setSupermarketModalVisible(true);
+      } else if (qrData.type === 'checkout') {
+        // Es un QR de checkout
+        await processCheckout();
+      } else {
+        // Otro tipo de QR
+        Alert.alert(
+          'Código escaneado',
+          `Datos: ${data}`,
+          [{ text: 'OK', onPress: () => setScanned(false) }]
+        );
+      }
+    } catch (error) {
+      // No es JSON válido, mostrar datos normales
+      Alert.alert(
+        'Código escaneado',
+        `Tipo: ${type}\\nDatos: ${data}`,
+        [{ text: 'OK', onPress: () => setScanned(false) }]
+      );
+    }
+  };
+  
+  const processCheckout = async () => {
+    try {
+      // Usar saveOrder del contexto que ya maneja todo correctamente
+      await saveOrder();
+      
+      setOrderModalVisible(true);
+    } catch (error) {
+      console.log('Error processing checkout:', error);
+      Alert.alert('Error', 'Hubo un problema al procesar el pago');
+      setScanned(false);
+    }
+  };
+  
+  const addSupermarket = async (supermarketData) => {
+    try {
+      const currentUser = await AsyncStorage.getItem('currentUser');
+      if (!currentUser) return;
+      
+      const savedSupermarkets = await AsyncStorage.getItem(`visitedSupermarkets_${currentUser}`);
+      const supermarkets = savedSupermarkets ? JSON.parse(savedSupermarkets) : [];
+      
+      // Verificar si ya existe
+      if (supermarkets.some(s => s.id === supermarketData.id)) {
+        return; // Ya existe, no agregar duplicado
+      }
+      
+      // Agregar nuevo supermercado con fecha actual
+      const newSupermarket = {
+        ...supermarketData,
+        lastVisit: new Date().toLocaleDateString()
+      };
+      
+      const updatedSupermarkets = [...supermarkets, newSupermarket];
+      await AsyncStorage.setItem(`visitedSupermarkets_${currentUser}`, JSON.stringify(updatedSupermarkets));
+      
+      // Guardar como ubicación actual
+      await AsyncStorage.setItem(`currentLocation_${currentUser}`, supermarketData.name);
+    } catch (error) {
+      console.log('Error adding supermarket:', error);
+    }
   };
 
   if (hasPermission === null) {
     return (
       <View style={styles.root}>
         <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
-          <Header location="Sarmiento 123" onPressLocation={() => {}} />
+          <Header location={currentLocation} onPressLocation={() => {}} />
         </SafeAreaView>
         
         <View style={styles.titleWrapper}>
@@ -90,7 +174,7 @@ export default function ScanScreen() {
     return (
       <View style={styles.root}>
         <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
-          <Header location="Sarmiento 123" onPressLocation={() => {}} />
+          <Header location={currentLocation} onPressLocation={() => {}} />
         </SafeAreaView>
         
         <View style={styles.titleWrapper}>
@@ -111,7 +195,7 @@ export default function ScanScreen() {
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
-        <Header location="Sarmiento 123" onPressLocation={() => {}} />
+        <Header location={currentLocation} onPressLocation={() => {}} />
       </SafeAreaView>
 
       <View style={styles.titleWrapper}>
@@ -124,17 +208,6 @@ export default function ScanScreen() {
           <TouchableOpacity 
             style={styles.greenButton} 
             onPress={() => setOrderModalVisible(true)}
-          />
-          <TouchableOpacity 
-            style={styles.yellowButton} 
-            onPress={() => {
-              Alert.alert('Éxito', 'Dirección de supermercado scaneada correctamente', [
-                {
-                  text: 'Continuar',
-                  onPress: () => router.replace('/(main)/home')
-                }
-              ]);
-            }}
           />
         </View>
       </View>
@@ -149,21 +222,33 @@ export default function ScanScreen() {
           }}
         />
         
-        {/* Overlay con marco de escaneo */}
+        {/* Overlay con marco de escaneo mejorado */}
         <View style={styles.overlay}>
           <View style={styles.overlayTop} />
           <View style={styles.overlayMiddle}>
             <View style={styles.overlaySide} />
-            <View style={styles.scanFrame} />
+            <View style={styles.scanFrame}>
+              {/* Esquinas del marco */}
+              <View style={[styles.corner, styles.topLeft]} />
+              <View style={[styles.corner, styles.topRight]} />
+              <View style={[styles.corner, styles.bottomLeft]} />
+              <View style={[styles.corner, styles.bottomRight]} />
+              
+              {/* Línea de escaneo animada */}
+              <View style={styles.scanLine} />
+            </View>
             <View style={styles.overlaySide} />
           </View>
           <View style={styles.overlayBottom} />
         </View>
         
         <View style={styles.instructionContainer}>
-          <Text style={styles.instructionText}>
-            Apunta la cámara al código QR o código de barras
-          </Text>
+          <View style={styles.instructionCard}>
+            <Text style={styles.instructionTitle}>Scan QR Code</Text>
+            <Text style={styles.instructionText}>
+              Point your camera at a QR code to add supermarket
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -176,30 +261,76 @@ export default function ScanScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>¡Orden Aceptada!</Text>
+            <View style={styles.successIcon}>
+              <Text style={styles.checkmark}>✓</Text>
+            </View>
+            
+            <Text style={styles.modalTitle}>Payment Successful!</Text>
             <Text style={styles.modalMessage}>
-              Tu orden ha sido procesada exitosamente.
+              Your order has been processed successfully.
+              Check your order history for details.
             </Text>
             
             <TouchableOpacity 
-              style={styles.downloadButton}
-              onPress={async () => {
-                await saveOrder();
-                Alert.alert('Descarga', 'Ticket descargado exitosamente');
+              style={styles.primaryButton}
+              onPress={() => {
                 setOrderModalVisible(false);
+                router.push('/(main)/orders');
               }}
             >
-              <Text style={styles.downloadButtonText}>Descargar Ticket</Text>
+              <Text style={styles.primaryButtonText}>View Order History</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
-              style={styles.backButton}
+              style={styles.secondaryButton}
               onPress={() => {
                 setOrderModalVisible(false);
                 router.push('/(main)/home');
               }}
             >
-              <Text style={styles.backButtonText}>Volver al Menú</Text>
+              <Text style={styles.secondaryButtonText}>Continue Shopping</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal de supermercado agregado */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={supermarketModalVisible}
+        onRequestClose={() => setSupermarketModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.successIcon}>
+              <Text style={styles.checkmark}>✓</Text>
+            </View>
+            
+            <Text style={styles.modalTitle}>Supermarket Added!</Text>
+            <Text style={styles.modalMessage}>
+              {currentLocation} has been added to your visited supermarkets.
+              You can now shop here!
+            </Text>
+            
+            <TouchableOpacity 
+              style={styles.primaryButton}
+              onPress={() => {
+                setSupermarketModalVisible(false);
+                router.push('/(main)/home');
+              }}
+            >
+              <Text style={styles.primaryButtonText}>Start Shopping</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.secondaryButton}
+              onPress={() => {
+                setSupermarketModalVisible(false);
+                router.push('/(main)/supermarkets');
+              }}
+            >
+              <Text style={styles.secondaryButtonText}>View Supermarkets</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -229,13 +360,13 @@ export default function ScanScreen() {
             </TouchableOpacity>
             
             <TouchableOpacity 
-              style={styles.backButton}
+              style={styles.secondaryButton}
               onPress={() => {
                 setErrorModalVisible(false);
                 router.push('/(main)/home');
               }}
             >
-              <Text style={styles.backButtonText}>Volver al Menú</Text>
+              <Text style={styles.secondaryButtonText}>Volver al Menú</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -291,14 +422,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  yellowButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: '#FFD700',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   buttonText: {
     color: 'white',
     fontSize: 16,
@@ -333,45 +456,102 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   overlayTop: {
-    flex: 1,
+    flex: 0.8,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     width: '100%',
   },
   overlayMiddle: {
     flexDirection: 'row',
-    height: 250,
+    height: 240,
   },
   overlaySide: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   overlayBottom: {
-    flex: 1,
+    flex: 1.5,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     width: '100%',
   },
   scanFrame: {
-    width: 250,
-    height: 250,
-    borderWidth: 2,
+    width: 240,
+    height: 240,
+    position: 'relative',
+  },
+  corner: {
+    position: 'absolute',
+    width: 30,
+    height: 30,
     borderColor: '#A3C163',
-    borderRadius: 6,
+    borderWidth: 4,
+  },
+  topLeft: {
+    top: 0,
+    left: 0,
+    borderRightWidth: 0,
+    borderBottomWidth: 0,
+    borderTopLeftRadius: 8,
+  },
+  topRight: {
+    top: 0,
+    right: 0,
+    borderLeftWidth: 0,
+    borderBottomWidth: 0,
+    borderTopRightRadius: 8,
+  },
+  bottomLeft: {
+    bottom: 0,
+    left: 0,
+    borderRightWidth: 0,
+    borderTopWidth: 0,
+    borderBottomLeftRadius: 8,
+  },
+  bottomRight: {
+    bottom: 0,
+    right: 0,
+    borderLeftWidth: 0,
+    borderTopWidth: 0,
+    borderBottomRightRadius: 8,
+  },
+  scanLine: {
+    position: 'absolute',
+    top: '50%',
+    left: 0,
+    right: 0,
+    height: 2,
+    backgroundColor: '#A3C163',
+    opacity: 0.8,
   },
   instructionContainer: {
     position: 'absolute',
     bottom: 100,
-    left: 0,
-    right: 0,
+    left: 20,
+    right: 20,
     alignItems: 'center',
   },
+  instructionCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
+    alignItems: 'center',
+  },
+  instructionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: 4,
+  },
   instructionText: {
-    color: 'black',
-    fontSize: 16,
+    fontSize: 14,
+    color: '#666',
     textAlign: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
+    lineHeight: 20,
   },
   // Estilos para el modal
   modalOverlay: {
@@ -395,42 +575,65 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5
   },
+  successIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#A3C163',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  checkmark: {
+    fontSize: 40,
+    color: 'white',
+    fontWeight: 'bold',
+  },
   modalTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#A3C163',
-    marginBottom: 15,
+    color: '#333',
+    marginBottom: 12,
+    textAlign: 'center',
   },
   modalMessage: {
     fontSize: 16,
     textAlign: 'center',
     color: '#666',
-    marginBottom: 25,
+    marginBottom: 30,
+    lineHeight: 22,
   },
-  downloadButton: {
+  primaryButton: {
     backgroundColor: '#A3C163',
-    borderRadius: 15,
-    paddingVertical: 12,
+    borderRadius: 12,
+    paddingVertical: 16,
     paddingHorizontal: 30,
     width: '100%',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 12,
+    shadowColor: '#A3C163',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
-  downloadButtonText: {
+  primaryButtonText: {
     color: 'white',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
-  backButton: {
-    backgroundColor: '#f0f0f0',
-    borderRadius: 15,
-    paddingVertical: 12,
+  secondaryButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: '#A3C163',
+    borderRadius: 12,
+    paddingVertical: 14,
     paddingHorizontal: 30,
     width: '100%',
     alignItems: 'center',
   },
-  backButtonText: {
-    color: '#666',
+  secondaryButtonText: {
+    color: '#A3C163',
     fontSize: 16,
     fontWeight: '600',
   },

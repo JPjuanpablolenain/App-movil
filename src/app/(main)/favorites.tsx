@@ -1,7 +1,8 @@
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dimensions, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import BottomTabBar from '../../components/BottomTabBar';
 import Header from '../../components/Header';
@@ -15,7 +16,36 @@ const CARD_HEIGHT = 160;
 
 const FavoritesScreen = () => {
   const [activeTab, setActiveTab] = useState('favorites');
+  const [currentLocation, setCurrentLocation] = useState('Select Location');
   const router = useRouter();
+  
+  useEffect(() => {
+    loadCurrentLocation();
+  }, []);
+  
+  const loadCurrentLocation = async () => {
+    try {
+      const currentUser = await AsyncStorage.getItem('currentUser');
+      if (currentUser) {
+        const savedSupermarkets = await AsyncStorage.getItem(`visitedSupermarkets_${currentUser}`);
+        const supermarkets = savedSupermarkets ? JSON.parse(savedSupermarkets) : [];
+        
+        if (supermarkets.length === 0) {
+          setCurrentLocation('Select Location');
+          await AsyncStorage.removeItem(`currentLocation_${currentUser}`);
+        } else {
+          const location = await AsyncStorage.getItem(`currentLocation_${currentUser}`);
+          if (location && supermarkets.some(s => s.name === location)) {
+            setCurrentLocation(location);
+          } else {
+            setCurrentLocation('Select Location');
+          }
+        }
+      }
+    } catch (error) {
+      console.log('Error loading location:', error);
+    }
+  };
   const insets = useSafeAreaInsets();
   const TAB_BAR_HEIGHT = 60;
   const { favorites, removeFavorite } = useFavorites();
@@ -90,7 +120,11 @@ const FavoritesScreen = () => {
     <View style={styles.root}>
       {/* 1) HEADER */}
       <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
-        <Header location="Sarmiento 123" onPressLocation={() => {}} />
+        <Header 
+          location={currentLocation} 
+          onPressLocation={() => {}} 
+          onLocationChange={(newLocation) => setCurrentLocation(newLocation)}
+        />
       </SafeAreaView>
 
       {/* 2) TÍTULO */}

@@ -1,5 +1,5 @@
 import React, { useState, useContext, useRef } from 'react';
-import { Alert, Animated } from 'react-native';
+import { Alert, Animated, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
     KeyboardAvoidingView,
@@ -22,6 +22,7 @@ const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [username, setUsername] = useState('');
   const { login, register } = useContext(AuthContext);
   const router = useRouter();
   const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -32,13 +33,18 @@ const LoginScreen = () => {
       return;
     }
     
+    if (selectedTab === 'signup' && !username) {
+      Alert.alert('Error', 'Please enter a username');
+      return;
+    }
+    
     if (selectedTab === 'signup') {
       if (password !== confirmPassword) {
         Alert.alert('Error', 'Passwords do not match');
         return;
       }
       
-      const result = await register(email, password);
+      const result = await register(email, password, username);
       if (result.success) {
         Alert.alert('Success', 'Account created successfully!');
         setSelectedTab('login');
@@ -63,6 +69,7 @@ const LoginScreen = () => {
 
   return (
     <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+      <StatusBar barStyle="light-content" backgroundColor="black" translucent={false} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.container}
@@ -100,6 +107,14 @@ const LoginScreen = () => {
 
           {/* Inputs */}
           <View style={styles.inputsContainer}>
+            {selectedTab === 'signup' && (
+              <FormInput 
+                placeholder="Username" 
+                value={username}
+                onChangeText={setUsername}
+                autoCapitalize="none"
+              />
+            )}
             <FormInput 
               placeholder="Email address" 
               value={email}

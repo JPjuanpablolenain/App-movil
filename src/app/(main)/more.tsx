@@ -13,6 +13,7 @@ export default function MoreScreen() {
   const [userEmail, setUserEmail] = useState('usuario@ejemplo.com');
   const [userName, setUserName] = useState('Usuario');
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [currentLocation, setCurrentLocation] = useState('Select Location');
   const router = useRouter();
 
   useEffect(() => {
@@ -31,6 +32,11 @@ export default function MoreScreen() {
         const savedImage = await AsyncStorage.getItem(`profileImage_${email}`);
         if (savedImage) {
           setProfileImage(savedImage);
+        }
+        
+        const location = await AsyncStorage.getItem(`currentLocation_${email}`);
+        if (location) {
+          setCurrentLocation(location);
         }
       } catch (error) {
         console.log('Error getting current user:', error);
@@ -79,7 +85,11 @@ export default function MoreScreen() {
     <View style={styles.root}>
       {/* 1) HEADER */}
       <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
-        <Header location="Sarmiento 123" onPressLocation={() => { }} />
+        <Header 
+          location={currentLocation} 
+          onPressLocation={() => {}} 
+          onLocationChange={(newLocation) => setCurrentLocation(newLocation)}
+        />
       </SafeAreaView>
 
       {/* 2) CONTENIDO PRINCIPAL */}
@@ -107,9 +117,9 @@ export default function MoreScreen() {
               <Ionicons name="chevron-forward" size={20} color="#ccc" style={styles.chevron} />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.menuItem}>
-              <Ionicons name="time-outline" size={24} color="#666" />
-              <Text style={styles.menuItemText}>History</Text>
+            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/(main)/supermarkets')}>
+              <Ionicons name="storefront-outline" size={24} color="#666" />
+              <Text style={styles.menuItemText}>Supermarkets</Text>
               <Ionicons name="chevron-forward" size={20} color="#ccc" style={styles.chevron} />
             </TouchableOpacity>
 

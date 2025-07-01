@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import BottomTabBar from '../../components/BottomTabBar';
 import Header from '../../components/Header';
@@ -9,7 +10,36 @@ import { useOrders, Order } from '../_layout';
 
 const OrdersScreen = () => {
   const [activeTab, setActiveTab] = useState('more');
+  const [currentLocation, setCurrentLocation] = useState('Select Location');
   const router = useRouter();
+  
+  useEffect(() => {
+    loadCurrentLocation();
+  }, []);
+  
+  const loadCurrentLocation = async () => {
+    try {
+      const currentUser = await AsyncStorage.getItem('currentUser');
+      if (currentUser) {
+        const savedSupermarkets = await AsyncStorage.getItem(`visitedSupermarkets_${currentUser}`);
+        const supermarkets = savedSupermarkets ? JSON.parse(savedSupermarkets) : [];
+        
+        if (supermarkets.length === 0) {
+          setCurrentLocation('Select Location');
+          await AsyncStorage.removeItem(`currentLocation_${currentUser}`);
+        } else {
+          const location = await AsyncStorage.getItem(`currentLocation_${currentUser}`);
+          if (location && supermarkets.some(s => s.name === location)) {
+            setCurrentLocation(location);
+          } else {
+            setCurrentLocation('Select Location');
+          }
+        }
+      }
+    } catch (error) {
+      console.log('Error loading location:', error);
+    }
+  };
   const { orders } = useOrders();
 
   const handleTabPress = (tab: string) => {
@@ -58,11 +88,15 @@ const OrdersScreen = () => {
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
-        <Header location="Sarmiento 123" onPressLocation={() => {}} />
+        <Header 
+          location={currentLocation} 
+          onPressLocation={() => {}} 
+          onLocationChange={(newLocation) => setCurrentLocation(newLocation)}
+        />
       </SafeAreaView>
 
       <View style={styles.titleWrapper}>
-        <Text style={styles.screenTitle}>Historial de Órdenes</Text>
+        <Text style={styles.screenTitle}>Order history</Text>
       </View>
 
       {orders.length === 0 ? (

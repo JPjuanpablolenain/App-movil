@@ -2,7 +2,7 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Dimensions,
     FlatList,
@@ -13,6 +13,7 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import BottomTabBar from '../../../components/BottomTabBar';
 import Header from '../../../components/Header';
@@ -36,7 +37,26 @@ const snacksProducts = [
 
 export default function Snacks() {
   const [activeTab, setActiveTab] = useState('');
+  const [currentLocation, setCurrentLocation] = useState('Select Location');
   const router = useRouter();
+  
+  useEffect(() => {
+    loadCurrentLocation();
+  }, []);
+  
+  const loadCurrentLocation = async () => {
+    try {
+      const currentUser = await AsyncStorage.getItem('currentUser');
+      if (currentUser) {
+        const location = await AsyncStorage.getItem(`currentLocation_${currentUser}`);
+        if (location) {
+          setCurrentLocation(location);
+        }
+      }
+    } catch (error) {
+      console.log('Error loading location:', error);
+    }
+  };
   const insets = useSafeAreaInsets();
   const { addFavorite, removeFavorite, isFavorite } = useFavorites();
   const { addToCart, isInCart, getItemQuantity, decreaseQuantity } = useCart();
@@ -125,7 +145,11 @@ export default function Snacks() {
     <View style={styles.root}>
       {/* Header en la zona segura superior */}
       <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
-        <Header location="Sarmiento 123" onPressLocation={() => {}} />
+        <Header 
+          location={currentLocation} 
+          onPressLocation={() => {}} 
+          onLocationChange={(newLocation) => setCurrentLocation(newLocation)}
+        />
       </SafeAreaView>
 
       {/* Título de la pantalla */}
