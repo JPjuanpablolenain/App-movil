@@ -62,7 +62,7 @@ export default function WelcomeScreen() {
             resizeMode="contain"
           />
         </View>
-        <Text style={styles.welcomeText}>Bienvenido</Text>
+        <Text style={styles.welcomeText}>Welcome</Text>
       </Animated.View>
     </View>
   );

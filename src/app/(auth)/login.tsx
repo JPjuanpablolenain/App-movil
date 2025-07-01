@@ -59,7 +59,7 @@ const LoginScreen = () => {
           duration: 300,
           useNativeDriver: true,
         }).start(() => {
-          router.replace('/(main)/home');
+          router.replace('/(main)/welcome');
         });
       } else {
         Alert.alert('Error', result.message);

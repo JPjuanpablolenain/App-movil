@@ -102,7 +102,7 @@ export default function MoreScreen() {
               resizeMode="cover"
             />
           </View>
-          <Text style={styles.userName}>¡Hola {userName}!</Text>
+          <Text style={styles.userName}>Hello {userName}!</Text>
 
           <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/(main)/profile')}>
             <Ionicons name="person-outline" size={24} color="#666" />
