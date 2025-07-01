@@ -64,12 +64,6 @@ const CartScreen = () => {
     setModalVisible(true);
   };
 
-  const handleGenerateQR = () => {
-    console.log('Generate QR Code');
-    setModalVisible(false);
-    // Aquí iría la lógica para generar el código QR
-  };
-
   const handleScanQR = () => {
     setModalVisible(false);
     router.push('/(main)/scan');
@@ -198,14 +192,6 @@ const CartScreen = () => {
             <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
               <View style={styles.modalContent}>
                 <Text style={styles.modalTitle}>Checkout Options</Text>
-                
-                <TouchableOpacity 
-                  style={styles.modalButton}
-                  onPress={handleGenerateQR}
-                >
-                  <Ionicons name="qr-code-outline" size={24} color="white" style={styles.modalButtonIcon} />
-                  <Text style={styles.modalButtonText}>Generate QR Code</Text>
-                </TouchableOpacity>
                 
                 <TouchableOpacity 
                   style={styles.modalButton}

@@ -17,6 +17,14 @@ export type CartItem = Product & {
   quantity: number;
 };
 
+// Definir el tipo para una orden
+export type Order = {
+  id: string;
+  date: string;
+  items: CartItem[];
+  total: string;
+};
+
 // Definir el tipo para el contexto de favoritos
 type FavoritesContextType = {
   favorites: Product[];
@@ -35,6 +43,14 @@ type CartContextType = {
   isInCart: (id: string) => boolean;
   getCartCount: () => number;
   getItemQuantity: (id: string) => number;
+  saveOrder: () => Promise<void>;
+  clearCart: () => Promise<void>;
+};
+
+// Definir el tipo para el contexto de órdenes
+type OrdersContextType = {
+  orders: Order[];
+  getOrders: () => Order[];
 };
 
 // Crear contexto para favoritos
@@ -42,6 +58,9 @@ const FavoritesContext = createContext<FavoritesContextType | null>(null);
 
 // Crear contexto para el carrito
 const CartContext = createContext<CartContextType | null>(null);
+
+// Crear contexto para las órdenes
+const OrdersContext = createContext<OrdersContextType | null>(null);
 
 // Hook personalizado para usar el contexto de favoritos
 export const useFavorites = () => {
@@ -61,11 +80,20 @@ export const useCart = () => {
   return context;
 };
 
+// Hook personalizado para usar el contexto de órdenes
+export const useOrders = () => {
+  const context = useContext(OrdersContext);
+  if (!context) {
+    throw new Error("useOrders must be used within an OrdersProvider");
+  }
+  return context;
+};
+
 // Contexto para el estado de autenticación
 export const AuthContext = createContext({
   isLoggedIn: false,
   login: (email: string, password: string) => Promise.resolve({ success: false, message: '' }),
-  register: (name: string, email: string, password: string) => Promise.resolve({ success: false, message: '' }),
+  register: (email: string, password: string) => Promise.resolve({ success: false, message: '' }),
   logout: () => {},
 });
 
@@ -76,15 +104,20 @@ const RootNavigation = () => {
 
     const [favorites, setFavorites] = useState<Product[]>([]);
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
+    const [orders, setOrders] = useState<Order[]>([]);
     
     // Funciones para favoritos
-    const removeFavorite = (id: string) => {
-        setFavorites(favorites.filter(item => item.id !== id));
+    const removeFavorite = async (id: string) => {
+        const newFavorites = favorites.filter(item => item.id !== id);
+        setFavorites(newFavorites);
+        await AsyncStorage.setItem('favorites', JSON.stringify(newFavorites));
     };
     
-    const addFavorite = (product: Product) => {
+    const addFavorite = async (product: Product) => {
         if (!favorites.some(fav => fav.id === product.id)) {
-            setFavorites([...favorites, product]);
+            const newFavorites = [...favorites, product];
+            setFavorites(newFavorites);
+            await AsyncStorage.setItem('favorites', JSON.stringify(newFavorites));
         }
     };
     
@@ -93,39 +126,53 @@ const RootNavigation = () => {
     };
     
     // Funciones para el carrito
-    const addToCart = (product: Product) => {
+    const addToCart = async (product: Product) => {
+        let newCartItems;
+        
         // Si el producto ya está en el carrito, aumentar la cantidad
         if (cartItems.some(item => item.id === product.id)) {
-            increaseQuantity(product.id);
-            return;
+            newCartItems = cartItems.map(item => 
+                item.id === product.id 
+                    ? { ...item, quantity: item.quantity + 1 } 
+                    : item
+            );
+        } else {
+            // Si no, agregarlo con cantidad 1
+            const newItem: CartItem = {
+                ...product,
+                quantity: 1
+            };
+            newCartItems = [...cartItems, newItem];
         }
         
-        // Si no, agregarlo con cantidad 1
-        const newItem: CartItem = {
-            ...product,
-            quantity: 1
-        };
-        setCartItems([...cartItems, newItem]);
+        setCartItems(newCartItems);
+        await AsyncStorage.setItem('cartItems', JSON.stringify(newCartItems));
     };
     
-    const removeFromCart = (id: string) => {
-        setCartItems(cartItems.filter(item => item.id !== id));
+    const removeFromCart = async (id: string) => {
+        const newCartItems = cartItems.filter(item => item.id !== id);
+        setCartItems(newCartItems);
+        await AsyncStorage.setItem('cartItems', JSON.stringify(newCartItems));
     };
     
-    const increaseQuantity = (id: string) => {
-        setCartItems(cartItems.map(item => 
+    const increaseQuantity = async (id: string) => {
+        const newCartItems = cartItems.map(item => 
             item.id === id 
                 ? { ...item, quantity: item.quantity + 1 } 
                 : item
-        ));
+        );
+        setCartItems(newCartItems);
+        await AsyncStorage.setItem('cartItems', JSON.stringify(newCartItems));
     };
     
-    const decreaseQuantity = (id: string) => {
-        setCartItems(cartItems.map(item => 
+    const decreaseQuantity = async (id: string) => {
+        const newCartItems = cartItems.map(item => 
             item.id === id
                 ? { ...item, quantity: item.quantity - 1 } 
                 : item
-        ).filter(item => item.quantity > 0));
+        ).filter(item => item.quantity > 0);
+        setCartItems(newCartItems);
+        await AsyncStorage.setItem('cartItems', JSON.stringify(newCartItems));
     };
     
     const isInCart = (id: string) => {
@@ -141,19 +188,49 @@ const RootNavigation = () => {
         return item ? item.quantity : 0;
     };
     
+    const saveOrder = async () => {
+        if (cartItems.length === 0) return;
+        
+        const total = cartItems.reduce((sum, item) => {
+            const price = parseFloat(item.price.replace('$', ''));
+            return sum + (price * item.quantity);
+        }, 0).toFixed(2);
+        
+        const newOrder: Order = {
+            id: (orders.length + 1).toString().padStart(3, '0'),
+            date: new Date().toLocaleDateString(),
+            items: [...cartItems],
+            total: `$${total}`
+        };
+        
+        const newOrders = [...orders, newOrder];
+        setOrders(newOrders);
+        await AsyncStorage.setItem('orders', JSON.stringify(newOrders));
+        
+        // Limpiar carrito después de guardar la orden
+        await clearCart();
+    };
+    
+    const clearCart = async () => {
+        setCartItems([]);
+        await AsyncStorage.setItem('cartItems', JSON.stringify([]));
+    };
+    
+    const getOrders = () => {
+        return orders;
+    };
+    
     // Funciones de autenticación
-    const register = async (name: string, email: string, password: string) => {
+    const register = async (email: string, password: string) => {
         try {
             const existingUsers = await AsyncStorage.getItem('users');
             const users = existingUsers ? JSON.parse(existingUsers) : [];
             
-            // Verificar si el usuario ya existe
             if (users.find((user: any) => user.email === email)) {
                 return { success: false, message: 'User already exists' };
             }
             
-            // Agregar nuevo usuario
-            users.push({ name, email, password });
+            users.push({ name: 'Usuario', email, password });
             await AsyncStorage.setItem('users', JSON.stringify(users));
             
             return { success: true, message: 'User registered successfully' };
@@ -167,15 +244,12 @@ const RootNavigation = () => {
             const existingUsers = await AsyncStorage.getItem('users');
             const users = existingUsers ? JSON.parse(existingUsers) : [];
             
-            // Verificar credenciales
             const user = users.find((user: any) => user.email === email && user.password === password);
             
             if (user) {
                 await AsyncStorage.setItem('isLoggedIn', 'true');
                 await AsyncStorage.setItem('currentUser', email);
-                // Manejar cuentas antiguas sin nombre
-                const userName = user.name || 'Usuario';
-                await AsyncStorage.setItem('currentUserName', userName);
+                await AsyncStorage.setItem('currentUserName', 'Usuario');
                 setIsLoggedIn(true);
                 return { success: true, message: 'Login successful' };
             } else {
@@ -198,11 +272,26 @@ const RootNavigation = () => {
             try {
                 const loggedIn = await AsyncStorage.getItem('isLoggedIn');
                 const hasSeenSplash = await AsyncStorage.getItem('hasSeenSplash');
+                const savedFavorites = await AsyncStorage.getItem('favorites');
+                const savedCartItems = await AsyncStorage.getItem('cartItems');
+                const savedOrders = await AsyncStorage.getItem('orders');
                 
                 setIsLoggedIn(loggedIn === 'true');
                 setIsFirstLaunch(!hasSeenSplash);
+                
+                if (savedFavorites) {
+                    setFavorites(JSON.parse(savedFavorites));
+                }
+                
+                if (savedCartItems) {
+                    setCartItems(JSON.parse(savedCartItems));
+                }
+                
+                if (savedOrders) {
+                    setOrders(JSON.parse(savedOrders));
+                }
+                
                 setIsLoading(false);
-
                 
                 // Ocultar el splash screen nativo
                 SplashScreen.hideAsync();
@@ -231,9 +320,13 @@ const RootNavigation = () => {
                     decreaseQuantity, 
                     isInCart, 
                     getCartCount,
-                    getItemQuantity
+                    getItemQuantity,
+                    saveOrder,
+                    clearCart
                 }}>
-                    <Stack screenOptions={{ headerShown: false }}/>
+                    <OrdersContext.Provider value={{ orders, getOrders }}>
+                        <Stack screenOptions={{ headerShown: false }}/>
+                    </OrdersContext.Provider>
                 </CartContext.Provider>
             </FavoritesContext.Provider>
         </AuthContext.Provider>

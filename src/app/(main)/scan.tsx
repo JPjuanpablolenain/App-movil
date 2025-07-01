@@ -6,6 +6,7 @@ import { CameraView, Camera } from 'expo-camera';
 
 import BottomTabBar from '../../components/BottomTabBar';
 import Header from '../../components/Header';
+import { useCart } from '../_layout';
 
 export default function ScanScreen() {
   const [activeTab, setActiveTab] = useState('scan');
@@ -15,6 +16,7 @@ export default function ScanScreen() {
   const [errorModalVisible, setErrorModalVisible] = useState(false);
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { saveOrder } = useCart();
 
   useEffect(() => {
     const getCameraPermissions = async () => {
@@ -123,6 +125,17 @@ export default function ScanScreen() {
             style={styles.greenButton} 
             onPress={() => setOrderModalVisible(true)}
           />
+          <TouchableOpacity 
+            style={styles.yellowButton} 
+            onPress={() => {
+              Alert.alert('Éxito', 'Dirección de supermercado scaneada correctamente', [
+                {
+                  text: 'Continuar',
+                  onPress: () => router.replace('/(main)/home')
+                }
+              ]);
+            }}
+          />
         </View>
       </View>
 
@@ -170,7 +183,8 @@ export default function ScanScreen() {
             
             <TouchableOpacity 
               style={styles.downloadButton}
-              onPress={() => {
+              onPress={async () => {
+                await saveOrder();
                 Alert.alert('Descarga', 'Ticket descargado exitosamente');
                 setOrderModalVisible(false);
               }}
@@ -274,6 +288,14 @@ const styles = StyleSheet.create({
     height: 30,
     borderRadius: 15,
     backgroundColor: '#A3C163',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  yellowButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#FFD700',
     justifyContent: 'center',
     alignItems: 'center',
   },

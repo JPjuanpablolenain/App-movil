@@ -5,6 +5,7 @@ import SearchBar from '@/src/components/SearchBar';
 import SectionTitle from '@/src/components/SectionTitle';
 import React, { useState, useCallback } from 'react';
 import { Dimensions, FlatList, StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
@@ -12,6 +13,7 @@ const { width } = Dimensions.get('window');
 const CARD_MARGIN = 10;
 const CARD_WIDTH = (width - 60) / 2;
 const CARD_HEIGHT = 160;
+const CATEGORY_HEIGHT = 200;
 
 const categories = [
   {
@@ -54,6 +56,25 @@ const HomeScreen = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [showSearchShadow, setShowSearchShadow] = useState(false);
   const router = useRouter();
+
+  const getGradientColors = (category: string) => {
+    switch(category) {
+      case 'Fruits and Vegetables':
+        return ['rgba(24, 74, 0, 0.8)', 'rgba(56, 176, 0, 0.8)'];
+      case 'Dairy and Cereals':
+        return ['rgba(107, 76, 22, 0.8)', 'rgba(209, 148, 43, 0.8)'];
+      case 'Beverages':
+        return ['rgba(206, 216, 233, 0.8)', 'rgba(116, 121, 131, 1)'];
+      case 'Snacks':
+        return ['rgba(153, 136, 1, 0.8)', 'rgba(255, 227, 2, 1)'];
+      case 'Meat':
+        return ['rgba(102, 11, 12, 0.8)', 'rgba(204, 23, 25, 1)'];
+      case 'Cleaning Supplies':
+        return ['rgba(42, 128, 147, 0.8)', 'rgba(71, 216, 249, 1)'];
+      default:
+        return ['#f8f8f8', '#f8f8f8'];
+    }
+  };
 
   const filteredProducts = search.length > 0 
     ? allProducts.filter(product => 
@@ -163,12 +184,21 @@ const HomeScreen = () => {
           contentContainerStyle={styles.categories}
           columnWrapperStyle={styles.rowWrapper}
           renderItem={({ item }) => (
-            <View style={styles.cardWrapper}>
-              <CategoryCard 
-                image={item.image} 
-                label={item.label} 
-                onPress={() => handleCategoryPress(item.label)}
-              />
+            <View style={styles.categoryContainer}>
+              <LinearGradient
+                colors={getGradientColors(item.label)}
+                start={{x: 0, y: 0}}
+                end={{x: 1, y: 0}}
+                style={styles.cardWrapper}
+              >
+                <CategoryCard 
+                  image={item.image} 
+                  label="" 
+                  category={item.label}
+                  onPress={() => handleCategoryPress(item.label)}
+                />
+              </LinearGradient>
+              <Text style={styles.categoryLabel}>{item.label}</Text>
             </View>
           )}
           showsVerticalScrollIndicator={false}
@@ -217,12 +247,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 20,
   },
-  cardWrapper: {
+  categoryContainer: {
     width: CARD_WIDTH,
-    height: CARD_HEIGHT,
-    backgroundColor: '#f8f8f8',
-    borderRadius: 15,
+    height: CATEGORY_HEIGHT,
     marginHorizontal: CARD_MARGIN / 2,
+    alignItems: 'center',
+  },
+  cardWrapper: {
+    width: '100%',
+    height: CARD_HEIGHT,
+    borderRadius: 15,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -230,6 +264,14 @@ const styles = StyleSheet.create({
     elevation: 3,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  categoryLabel: {
+    marginTop: 8,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#222',
+    textAlign: 'center',
+    paddingHorizontal: 4,
   },
   searchWrapper: {
     paddingHorizontal: 20,

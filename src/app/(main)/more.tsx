@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -67,6 +67,14 @@ export default function MoreScreen() {
     router.push('/(auth)');
   };
 
+  const handleAbout = () => {
+    Alert.alert(
+      'Acerca de SmartMarket',
+      'Creado por:\n\nJuan Pablo Lenain\nMartin Vernazza\n\nGracias por usar nuestra aplicación.',
+      [{ text: 'OK' }]
+    );
+  };
+
   return (
     <View style={styles.root}>
       {/* 1) HEADER */}
@@ -93,7 +101,7 @@ export default function MoreScreen() {
           </TouchableOpacity>
 
           <View style={styles.infoContainer}>
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/(main)/orders')}>
               <Ionicons name="cart-outline" size={24} color="#666" />
               <Text style={styles.menuItemText}>Orders</Text>
               <Ionicons name="chevron-forward" size={20} color="#ccc" style={styles.chevron} />
@@ -117,7 +125,7 @@ export default function MoreScreen() {
               <Ionicons name="chevron-forward" size={20} color="#ccc" style={styles.chevron} />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity style={styles.menuItem} onPress={handleAbout}>
               <Ionicons name="information-circle-outline" size={24} color="#666" />
               <Text style={styles.menuItemText}>About</Text>
               <Ionicons name="chevron-forward" size={20} color="#ccc" style={styles.chevron} />
